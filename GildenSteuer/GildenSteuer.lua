@@ -410,7 +410,9 @@ function GildenSteuer:FillOutgoingQueue()
 	if self.numberMembers ~= nil and self.numberMembers > 0 then
 		for index = 1, self.numberMembers do
 			local playerName = GetGuildRosterInfo(index)
-			playerName = Ambiguate(playerName, "guild")
+			if fullName ~= nil then
+			table.insert(guildPlayers, Ambiguate(fullName, "guild"))
+			end
 			local playerStatus = self:GetPlayerStatusDB(playerName)
 			if playerStatus == nil or playerStatus.updated == nil then
 				self:RequestStatus(playerName)
