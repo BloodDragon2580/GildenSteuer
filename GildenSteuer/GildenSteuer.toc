@@ -1,8 +1,8 @@
-## Interface: 80300
+## Interface: 90001
 ## Title:|cffd6266cGildenSteuer|r
 ## Notes: Zahl deine Steuer und mach die Gilde Glücklich
 ## Author: BloodDragon2580
-## Version: 1.1
+## Version: 2.0
 ## SavedVariables: GildenSteuerDB
 
 
