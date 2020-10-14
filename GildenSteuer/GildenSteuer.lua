@@ -652,7 +652,7 @@ function GildenSteuer:PLAYER_ENTERING_WORLD( ... )
 	self:UpdatePlayerMoney()
 	self:UpdateGuildInfo()
 
-	GuildRoster()
+	C_GuildInfo.GuildRoster()
 
 	C_Timer.After(QUEUE_ITERATION, self.QueueIteration)
 end
