@@ -1,4 +1,4 @@
-## Interface: 90002
+## Interface: 90005
 ## Title:|cffd6266cGildenSteuer|r
 ## Notes: Zahl deine Steuer und mach die Gilde Glücklich
 ## Author: BloodDragon2580
