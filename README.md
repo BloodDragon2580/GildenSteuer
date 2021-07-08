@@ -11,3 +11,6 @@ Commands:
  
 
 Go to Menu-> Interface-> Guild Control to make settings.
+
+
+Download Count https://hanadigital.github.io/grev/?user=BloodDragon2580&repo=GildenSteuer
