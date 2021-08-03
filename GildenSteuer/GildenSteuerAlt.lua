@@ -373,7 +373,9 @@ function GildenSteuer:NotifyStatus(playerName)
 end
 
 function GildenSteuer:RequestStatus(playerName, timestamp)
+	if playerName ~= nil then
 	self:Debug("Add status request for " .. playerName .. " to queue")
+	end
 	if timestamp == nil then
 		timestamp = self:GetPlayerStatusDB(playerName, true).timestamp
 	end
@@ -410,7 +412,9 @@ function GildenSteuer:FillOutgoingQueue()
 	if self.numberMembers ~= nil and self.numberMembers > 0 then
 		for index = 1, self.numberMembers do
 			local playerName = GetGuildRosterInfo(index)
-			playerName = Ambiguate(playerName, "guild")
+			if fullName ~= nil then
+			table.insert(guildPlayers, Ambiguate(fullName, "guild"))
+			end
 			local playerStatus = self:GetPlayerStatusDB(playerName)
 			if playerStatus == nil or playerStatus.updated == nil then
 				self:RequestStatus(playerName)
@@ -454,7 +458,9 @@ function GildenSteuer:PurgeOldData()
 		local guildPlayers = {}
 		for index = 1, GildenSteuer.numberMembers do
 			local fullName = GetGuildRosterInfo(index)
+			if fullName ~= nil then
 			table.insert(guildPlayers, Ambiguate(fullName, "guild"))
+			end
 		end
 		self.nextPurgeTimestamp = time() + PURGE_DATA_PERIOD
 	end
@@ -620,6 +626,7 @@ function GildenSteuer:OnCommReceived(prefix, message, channel, sender)
 		end
 	end
 end
+
 
 function GildenSteuer:ChatFrame_OnHyperlinkShow(chat, link, text, button)
 	local command = strsub(link, 1, 4);
