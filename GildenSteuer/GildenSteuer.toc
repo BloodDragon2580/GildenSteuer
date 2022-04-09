@@ -2,7 +2,7 @@
 ## Title:|cffd6266cGildenSteuer|r
 ## Notes: Zahl deine Steuer und mach die Gilde Glücklich
 ## Author: BloodDragon2580
-## Version: 3.1
+## Version: 3.2
 ## SavedVariables: GildenSteuerDB
 
 

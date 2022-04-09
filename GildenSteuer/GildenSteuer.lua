@@ -1,4 +1,4 @@
-local VERSION = "1.0"
+local VERSION = "3.2"
 local DEVELOPMENT = false
 local SLASH_COMMAND = "gt"
 local MESSAGE_PREFIX = "GT"
@@ -410,7 +410,11 @@ function GildenSteuer:FillOutgoingQueue()
 	if self.numberMembers ~= nil and self.numberMembers > 0 then
 		for index = 1, self.numberMembers do
 			local playerName = GetGuildRosterInfo(index)
+			
+			if playerName ~= nil then
 			playerName = Ambiguate(playerName, "guild")
+			end
+			
 			local playerStatus = self:GetPlayerStatusDB(playerName)
 			if playerStatus == nil or playerStatus.updated == nil then
 				self:RequestStatus(playerName)
