@@ -331,7 +331,7 @@ function GildenSteuer:PayTax()
 	end
 	self.isPayingTax = true
 	self:PrintPayingTax(self:GetTax())
-	C_Timer.After(0.5, function() DepositGuildBankMoney(tonumber(self:GetTax())) end)
+	C_Timer.After(2.5, function() DepositGuildBankMoney(tonumber(self:GetTax())) end)
 	self.GUI:UpdatePayedStatus()
 end
 
@@ -692,7 +692,7 @@ function GildenSteuer:PLAYER_MONEY( ... )
 	self:UpdatePlayerMoney(newPlayerMoney)
 end
 
-function GildenSteuer:GUILDBANKFRAME_OPENED( ... )
+function GildenSteuer:PLAYER_INTERACTION_MANAGER_FRAME_SHOW( ... )
 	self:Debug("Guild bank opened")
 	self.isBankOpened = true
 
@@ -712,7 +712,7 @@ function GildenSteuer:GUILDBANKFRAME_OPENED( ... )
 
 end
 
-function GildenSteuer:GUILDBANKFRAME_CLOSED( ... )
+function GildenSteuer:PLAYER_INTERACTION_MANAGER_FRAME_HIDE( ... )
 	if self.isBankOpened then
 		self:Debug("Guild bank closed")
 		self.isBankOpened = false
@@ -769,8 +769,8 @@ GildenSteuer:RegisterChatCommand(SLASH_COMMAND, "OnSlashCommand")
 
 GildenSteuer:RegisterEvent("PLAYER_ENTERING_WORLD")
 GildenSteuer:RegisterEvent("PLAYER_MONEY")
-GildenSteuer:RegisterEvent("GUILDBANKFRAME_OPENED")
-GildenSteuer:RegisterEvent("GUILDBANKFRAME_CLOSED")
+GildenSteuer:RegisterEvent("PLAYER_INTERACTION_MANAGER_FRAME_SHOW")
+GildenSteuer:RegisterEvent("PLAYER_INTERACTION_MANAGER_FRAME_HIDE")
 GildenSteuer:RegisterEvent("MAIL_SHOW")
 GildenSteuer:RegisterEvent("MAIL_CLOSED")
 GildenSteuer:RegisterEvent("PLAYER_GUILD_UPDATE")
