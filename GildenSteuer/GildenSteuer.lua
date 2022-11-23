@@ -373,7 +373,7 @@ function GildenSteuer:NotifyStatus(playerName)
 end
 
 function GildenSteuer:RequestStatus(playerName, timestamp)
-	self:Debug("Add status request for " .. playerName .. " to queue")
+	--self:Debug("Add status request for " .. playerName .. " to queue")
 	if timestamp == nil then
 		timestamp = self:GetPlayerStatusDB(playerName, true).timestamp
 	end
