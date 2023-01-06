@@ -458,7 +458,9 @@ function GildenSteuer:PurgeOldData()
 		local guildPlayers = {}
 		for index = 1, GildenSteuer.numberMembers do
 			local fullName = GetGuildRosterInfo(index)
+			if fullName ~= nil then
 			table.insert(guildPlayers, Ambiguate(fullName, "guild"))
+			end
 		end
 		self.nextPurgeTimestamp = time() + PURGE_DATA_PERIOD
 	end
