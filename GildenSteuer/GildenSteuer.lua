@@ -1,4 +1,4 @@
-local VERSION = "4.5"
+local VERSION = "4.6"
 local DEVELOPMENT = false
 local SLASH_COMMAND = "gt"
 local MESSAGE_PREFIX = "GT"
@@ -373,7 +373,10 @@ function GildenSteuer:NotifyStatus(playerName)
 end
 
 function GildenSteuer:RequestStatus(playerName, timestamp)
-	self:Debug("Add status request for " .. self.playerName .. " to queue")
+	self:Debug("Add status request for " .. playerName .. " to queue")
+	if playerName == nil then
+		playerName = self:GetPlayerStatusDB(playerName, true).playerName
+	end
 	if timestamp == nil then
 		timestamp = self:GetPlayerStatusDB(playerName, true).timestamp
 	end
