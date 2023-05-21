@@ -4,7 +4,7 @@
 ## Author: BloodDragon2580
 ## Version: 4.4
 ## SavedVariables: GildenSteuerDB
-
+## IconTexture: Interface\AddOns\MoveAround\Media\Texture\logo
 
 embeds.xml
 
