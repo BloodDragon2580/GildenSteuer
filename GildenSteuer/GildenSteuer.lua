@@ -1,4 +1,4 @@
-local VERSION = "4.6"
+local VERSION = "4.9"
 local DEVELOPMENT = false
 local SLASH_COMMAND = "gt"
 local MESSAGE_PREFIX = "GT"
@@ -35,6 +35,7 @@ end
 function GildenSteuer:OnInitialize()
 	self.db = LibStub("AceDB-3.0"):New("GildenSteuerDB", DEFAULTS, true)
 
+	playerName = nil
 	self.playerName = nil
 	self.playerRealm = nil
 	self.playerFullName = nil
@@ -373,9 +374,6 @@ function GildenSteuer:NotifyStatus(playerName)
 end
 
 function GildenSteuer:RequestStatus(playerName, timestamp)
-	if playerName == nil then
-		playerName = statusDB(playerName, true).playerName
-	end
 	self:Debug("Add status request for " .. playerName .. " to queue")
 	if timestamp == nil then
 		timestamp = self:GetPlayerStatusDB(playerName, true).timestamp
