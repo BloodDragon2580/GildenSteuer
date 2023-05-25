@@ -48,3 +48,6 @@ GT_CHAT_NOTHING_TO_PAY       = "Платить ничего не нужно"
 GT_CHAT_OPEN_BANK            = "Пожалуйста, откройте банк гильдии"
 GT_CHAT_PAYING_TAX           = "Оплачиваю %s налога"
 GT_CHAT_NOT_READY            = "Аддон ещё не инициализировался, попробуйте чуть позже"
+
+GT_LeftMouse = "Left-click to open the |cffd6266cGuild Tax|r"
+GT_RightMouse = "Right click to move the |cffd6266cButton|r"
