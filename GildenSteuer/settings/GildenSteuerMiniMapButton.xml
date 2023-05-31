@@ -63,12 +63,6 @@
 				self.isMoving = false;
 				end
 			</OnMouseUp>
-			<OnHide>
-				if ( this.isMoving ) then
-				this:StopMovingOrSizing();
-				this.isMoving = false;
-				end
-			</OnHide>
 			<OnDragStart>
 				this:LockHighlight()
 				MyMod_MinimapButton_DraggingFrame:Show()
