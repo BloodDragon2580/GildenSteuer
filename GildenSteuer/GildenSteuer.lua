@@ -1,4 +1,4 @@
-local VERSION = "5.1"
+local VERSION = "5.2"
 local DEVELOPMENT = false
 local SLASH_COMMAND = "gt"
 local MESSAGE_PREFIX = "GT"
@@ -374,7 +374,7 @@ function GildenSteuer:NotifyStatus(playerName)
 end
 
 function GildenSteuer:RequestStatus(playerName, timestamp)
-	--self:Debug("Add status request for " .. playerName .. " to queue")
+	self:Debug("Add status request for " .. playerName .. " to queue")
 	if timestamp == nil then
 		timestamp = self:GetPlayerStatusDB(playerName, true).timestamp
 	end
@@ -647,7 +647,7 @@ function GildenSteuer:ChatFrame_OnHyperlinkShow(chat, link, text, button)
 	end
 end
 
-function GildenSteuer:PLAYER_ENTERING_WORLD( ... )
+function GildenSteuer:ADDON_LOADED( ... )
 	self.GUI:Create()
 
 	self:UpdatePlayerName()
@@ -762,7 +762,7 @@ GildenSteuer:RegisterComm(MESSAGE_PREFIX)
 
 GildenSteuer:RegisterChatCommand(SLASH_COMMAND, "OnSlashCommand")
 
-GildenSteuer:RegisterEvent("PLAYER_ENTERING_WORLD")
+GildenSteuer:RegisterEvent("ADDON_LOADED")
 GildenSteuer:RegisterEvent("PLAYER_MONEY")
 GildenSteuer:RegisterEvent("GUILDBANKBAGSLOTS_CHANGED")
 GildenSteuer:RegisterEvent("MAIL_SHOW")
