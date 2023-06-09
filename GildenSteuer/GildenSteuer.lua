@@ -1,4 +1,4 @@
-local VERSION = "5.2"
+local VERSION = "5.3"
 local DEVELOPMENT = false
 local SLASH_COMMAND = "gt"
 local MESSAGE_PREFIX = "GT"
@@ -35,7 +35,6 @@ end
 function GildenSteuer:OnInitialize()
 	self.db = LibStub("AceDB-3.0"):New("GildenSteuerDB", DEFAULTS, true)
 
-	playerName = nil
 	self.playerName = nil
 	self.playerRealm = nil
 	self.playerFullName = nil
@@ -374,7 +373,7 @@ function GildenSteuer:NotifyStatus(playerName)
 end
 
 function GildenSteuer:RequestStatus(playerName, timestamp)
-	self:Debug("Add status request for " .. playerName .. " to queue")
+	GildenSteuer:Debug("Add status request for " .. playerName .. " to queue")
 	if timestamp == nil then
 		timestamp = self:GetPlayerStatusDB(playerName, true).timestamp
 	end
@@ -647,7 +646,7 @@ function GildenSteuer:ChatFrame_OnHyperlinkShow(chat, link, text, button)
 	end
 end
 
-function GildenSteuer:ADDON_LOADED( ... )
+function GildenSteuer:PLAYER_ENTERING_WORLD( ... )
 	self.GUI:Create()
 
 	self:UpdatePlayerName()
@@ -762,7 +761,7 @@ GildenSteuer:RegisterComm(MESSAGE_PREFIX)
 
 GildenSteuer:RegisterChatCommand(SLASH_COMMAND, "OnSlashCommand")
 
-GildenSteuer:RegisterEvent("ADDON_LOADED")
+GildenSteuer:RegisterEvent("PLAYER_ENTERING_WORLD")
 GildenSteuer:RegisterEvent("PLAYER_MONEY")
 GildenSteuer:RegisterEvent("GUILDBANKBAGSLOTS_CHANGED")
 GildenSteuer:RegisterEvent("MAIL_SHOW")
