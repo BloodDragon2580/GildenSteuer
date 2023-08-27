@@ -1,0 +1,7 @@
+	GildenSteuer:Debug("Add status request for " .. tostring(playerName) .. " to queue")
+
+
+
+		if playerName == nil then
+			playerName = GildenSteuer.playerName
+		end
