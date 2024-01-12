@@ -1,8 +1,8 @@
-## Interface: 100200
+## Interface: 100205
 ## Title:|cffd6266cGildenSteuer|r
 ## Notes: Zahl deine Steuer und mach die Gilde Glücklich
 ## Author: BloodDragon2580
-## Version: 6.1
+## Version: 6.2
 ## SavedVariables: GildenSteuerDB
 ## IconTexture: Interface\AddOns\GildenSteuer\Media\Texture\logo
 
