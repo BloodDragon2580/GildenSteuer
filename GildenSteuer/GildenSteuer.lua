@@ -44,7 +44,6 @@ function GildenSteuer:OnInitialize()
 	self.guildRealm = nil
 	self.numberMembers = nil
 	self.numberMembersOnline = nil
-	self.isMailOpened = false
 	self.isBankOpened = false
 	self.isPayingTax = false
 	self.isReady = false
@@ -677,8 +676,6 @@ function GildenSteuer:PLAYER_MONEY( ... )
 	elseif delta > 0 then
 		if not self.guildId then
 			self:Debug("Not in guild, transaction ignored")
-		elseif self.isMailOpened then
-			self:Debug("Mailbox is open, transaction ignored")
 		elseif self.isBankOpened then
 			self:Debug("Guild bank is open, transaction ignored")
 		else
@@ -720,18 +717,6 @@ function GildenSteuer:GUILDBANKBAGSLOTS_CHANGED( ... )
 
 end
 
-function GildenSteuer:MAIL_SHOW( ... )
-	self:Debug("Mailbox opened")
-	self.isMailOpened = true
-end
-
-function GildenSteuer:MAIL_CLOSED( ... )
-	if self.isMailOpened then
-		self:Debug("Mailbox closed")
-		self.isMailOpened = false
-	end
-end
-
 function GildenSteuer:PLAYER_GUILD_UPDATE(event, unit)
 	if unit == "player" then
 		self:Debug("Player guild info updated")
@@ -770,7 +755,5 @@ GildenSteuer:RegisterChatCommand(SLASH_COMMAND, "OnSlashCommand")
 GildenSteuer:RegisterEvent("PLAYER_ENTERING_WORLD")
 GildenSteuer:RegisterEvent("PLAYER_MONEY")
 GildenSteuer:RegisterEvent("GUILDBANKBAGSLOTS_CHANGED")
-GildenSteuer:RegisterEvent("MAIL_SHOW")
-GildenSteuer:RegisterEvent("MAIL_CLOSED")
 GildenSteuer:RegisterEvent("PLAYER_GUILD_UPDATE")
 GildenSteuer:RegisterEvent("GUILD_ROSTER_UPDATE")
