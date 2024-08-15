@@ -173,7 +173,7 @@ function GildenSteuer:GetStatus(playerName)
 	local status = {}
 
 	if playerName == GildenSteuer.playerName then
-		status.version = GetAddOnMetadata("GildenSteuer", "Version")
+		status.version = C_AddOns.GetAddOnMetadata("GildenSteuer", "Version")
 		status.timestamp = time()
 		status.rate = GildenSteuer:GetRate()
 		status.tax = GildenSteuer:GetTax()
