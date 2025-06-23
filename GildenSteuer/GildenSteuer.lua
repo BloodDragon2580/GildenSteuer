@@ -1,4 +1,4 @@
-local VERSION = "5.3"
+local VERSION = "12.0"
 local DEVELOPMENT = false
 local SLASH_COMMAND = "gt"
 local MESSAGE_PREFIX = "GT"
@@ -697,24 +697,49 @@ function GildenSteuer:PLAYER_MONEY( ... )
 	self:UpdatePlayerMoney(newPlayerMoney)
 end
 
-function GildenSteuer:GUILDBANKBAGSLOTS_CHANGED( ... )
-	self:Debug("Guild bank opened")
-	self.isBankOpened = true
+local function OnGuildBankShow(self, ...)
+    local event, frameType = ...
+    if frameType == 10 then  -- 10 = Guild Bank
+        self:Debug("Guild Bank opened via InteractionManager")
+        self.isBankOpened = true
 
-	if self.isReady then
-		local tax = floor(self:GetTax())
-		if tax >= 1 and self.db.profile.autopay then
-			self:PayTax()
-		else
-			self:PrintTax()
-		end
-		if self.db.profile.direct then
-			self.isPayingTax = true
-		end
-	else
-		self:PrintNotReady()
-	end
+        if self.isReady then
+            local tax = floor(self:GetTax())
+            if tax >= 1 and self.db.profile.autopay then
+                self:PayTax()
+            else
+                self:PrintTax()
+            end
+            if self.db.profile.direct then
+                self.isPayingTax = true
+            end
+        else
+            self:PrintNotReady()
+        end
+    end
+end
 
+local function OnGuildBankHide(self, ...)
+    local event, frameType = ...
+    if frameType == 10 then  -- Guild Bank
+        self:Debug("Guild Bank closed via InteractionManager")
+        self.isBankOpened = false
+    end
+end
+
+-- Registriere die neuen Interaction-Events in einem eigenen Frame
+do
+    local frame = CreateFrame("Frame", "GildenSteuer_BankListener")
+    frame:RegisterEvent("PLAYER_INTERACTION_MANAGER_FRAME_SHOW")
+    frame:RegisterEvent("PLAYER_INTERACTION_MANAGER_FRAME_HIDE")
+    frame:SetScript("OnEvent", function(_, event, ...)
+        if event == "PLAYER_INTERACTION_MANAGER_FRAME_SHOW" then
+            OnGuildBankShow(GildenSteuer, event, ...)
+        elseif event == "PLAYER_INTERACTION_MANAGER_FRAME_HIDE" then
+            OnGuildBankHide(GildenSteuer, event, ...)
+        end
+    end)
+    GildenSteuer.bankFrameListener = frame
 end
 
 function GildenSteuer:PLAYER_GUILD_UPDATE(event, unit)
@@ -754,6 +779,5 @@ GildenSteuer:RegisterChatCommand(SLASH_COMMAND, "OnSlashCommand")
 
 GildenSteuer:RegisterEvent("PLAYER_ENTERING_WORLD")
 GildenSteuer:RegisterEvent("PLAYER_MONEY")
-GildenSteuer:RegisterEvent("GUILDBANKBAGSLOTS_CHANGED")
 GildenSteuer:RegisterEvent("PLAYER_GUILD_UPDATE")
 GildenSteuer:RegisterEvent("GUILD_ROSTER_UPDATE")
