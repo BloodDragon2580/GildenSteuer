@@ -1,4 +1,4 @@
-local VERSION = "12.0"
+local VERSION = "12.1"
 local DEVELOPMENT = false
 local SLASH_COMMAND = "gt"
 local MESSAGE_PREFIX = "GT"
