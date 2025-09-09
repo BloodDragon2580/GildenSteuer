@@ -1,4 +1,4 @@
-local VERSION = "12.1"
+local VERSION = "13.0"
 local DEVELOPMENT = false
 local SLASH_COMMAND = "gt"
 local MESSAGE_PREFIX = "GT"
@@ -663,45 +663,101 @@ function GildenSteuer:PLAYER_ENTERING_WORLD( ... )
 	C_Timer.After(QUEUE_ITERATION, self.QueueIteration)
 end
 
-function GildenSteuer:PLAYER_MONEY( ... )
+-- Erweiterte Grace Zeit für Kriegsmeuten-Bank
+local BANK_GRACE_SECONDS = 10
 
-	local newPlayerMoney = GetMoney()
-	local delta = newPlayerMoney - self.playerMoney
-
-	self:Debug("Player money, delta=" .. tostring(delta))
-
-	if not self.isReady then
-		self:Debug("Addon is not ready, transaction ignored")
-
-	elseif delta > 0 then
-		if not self.guildId then
-			self:Debug("Not in guild, transaction ignored")
-		elseif self.isBankOpened then
-			self:Debug("Guild bank is open, transaction ignored")
-		else
-			self:AccrueTax(delta, delta * self.db.char.rate)
-			self:NotifyStatus(self.playerName)
-		end
-
-	elseif self.isBankOpened and self.isPayingTax then
-		self:ReduceTax(-delta)
-		self.isPayingTax = false
-		self:PrintTax()
-		self:WritePaymentToHistory(-delta)
-		self:NotifyStatus(self.playerName)
-
-	else
-		self:Debug("Ignoring withdraw")
-	end
-
-	self:UpdatePlayerMoney(newPlayerMoney)
+-- Deaktivierte Guild-Bank API für TWW (funktioniert nicht mit Kriegsmeuten-Bank)
+local function GuildBankAPIAvailable()
+    return false -- Komplett deaktiviert für TWW
 end
 
-local function OnGuildBankShow(self, ...)
-    local event, frameType = ...
-    if frameType == 10 then  -- 10 = Guild Bank
-        self:Debug("Guild Bank opened via InteractionManager")
+-- Überarbeitete Funktion für bessere Kriegsmeuten-Bank-Erkennung
+function GildenSteuer:WasLastTransactionBankWithdraw()
+    self:Debug("WasLastTransactionBankWithdraw called; isBankOpened=" .. tostring(self.isBankOpened) .. ", lastBankInteraction=" .. tostring(self.lastBankInteraction))
+
+    local last = self.lastBankInteraction or 0
+    local since = GetTime() - last
+    self:Debug("Time since last bank interaction: " .. tostring(since) .. "s")
+
+    -- Für Kriegsmeuten-Bank: verwende nur Grace-Period-basierte Erkennung
+    if self.isBankOpened or since <= BANK_GRACE_SECONDS then
+        self:Debug("Bank is open or within grace period -> treat as bank withdraw")
+        return true
+    end
+    
+    self:Debug("Not in bank and grace period expired -> assume not bank withdraw")
+    return false
+end
+
+-- Überarbeitete PLAYER_MONEY Funktion mit verbesserter Kriegsmeuten-Bank-Erkennung
+function GildenSteuer:PLAYER_MONEY(...)
+    local newPlayerMoney = GetMoney()
+    local delta = newPlayerMoney - self.playerMoney
+
+    self:Debug("PLAYER_MONEY triggered; delta=" .. tostring(delta) .. ", playerMoney(before) = " .. tostring(self.playerMoney))
+
+    if not self.isReady then
+        self:Debug("Addon is not ready, transaction ignored")
+        self:UpdatePlayerMoney(newPlayerMoney)
+        return
+    end
+
+    if delta > 0 then
+        if not self.guildId then
+            self:Debug("Not in guild, transaction ignored")
+        else
+            local isBankWithdraw = false
+            local timeSinceBank = GetTime() - (self.lastBankInteraction or 0)
+
+            -- Bank-Abhebungskriterien
+            if self.isPayingTax then
+                self:Debug("Currently paying tax -> ignoring")
+                isBankWithdraw = true
+            elseif self.isBankOpened then
+                self:Debug("Bank is currently open -> treating as bank withdraw")
+                isBankWithdraw = true
+            elseif timeSinceBank <= BANK_GRACE_SECONDS then
+                self:Debug("Within grace period (" .. tostring(timeSinceBank) .. "s) -> treating as bank withdraw")
+                isBankWithdraw = true
+            end
+
+            -- Große Summen (>100g) nur als Bank-Abhebung behandeln, wenn Bank offen oder Grace-Period läuft
+            if delta > 1000000 and not isBankWithdraw then
+                self:Debug("Large amount detected but no bank interaction -> treating as normal income")
+            end
+
+            if isBankWithdraw then
+                self:Debug("Detected bank withdraw -> ignoring tax for delta " .. tostring(delta))
+            else
+                self:Debug("Treating as normal income -> accruing tax for delta " .. tostring(delta))
+                local taxAmount = math.floor(delta * (self.db.char.rate or 0))
+                self:AccrueTax(delta, taxAmount)
+                self:NotifyStatus(self.playerName)
+            end
+        end
+
+    elseif delta < 0 then
+        -- Steuerzahlung (nur wenn Bank offen und aktuell Steuern bezahlt werden)
+        if self.isBankOpened and self.isPayingTax then
+            self:ReduceTax(-delta)
+            self.isPayingTax = false
+            self:PrintTax()
+            self:WritePaymentToHistory(-delta)
+            self:NotifyStatus(self.playerName)
+        else
+            self:Debug("Ignoring withdraw or other transaction (delta=" .. tostring(delta) .. ")")
+        end
+    end
+
+    self:UpdatePlayerMoney(newPlayerMoney)
+end
+
+-- Korrigierte Bank-Event-Handler für Kriegsmeuten-Bank
+local function OnGuildBankShow(self, event, frameType)
+    if frameType == 10 then  -- nur Gildenbank
+        self:Debug("Gildenbank geöffnet (frameType=10)")
         self.isBankOpened = true
+        self.lastBankInteraction = GetTime()
 
         if self.isReady then
             local tax = floor(self:GetTax())
@@ -716,14 +772,26 @@ local function OnGuildBankShow(self, ...)
         else
             self:PrintNotReady()
         end
+    elseif frameType == 8 then
+        self:Debug("Kriegsmeutenbank geöffnet - nur überwachen, keine Meldung")
+        self.isBankOpened = true
+        self.lastBankInteraction = GetTime()
+    else
+        self:Debug("Andere Bank/Interaktion (frameType=" .. tostring(frameType) .. ") ignoriert")
     end
 end
 
-local function OnGuildBankHide(self, ...)
-    local event, frameType = ...
-    if frameType == 10 then  -- Guild Bank
-        self:Debug("Guild Bank closed via InteractionManager")
+local function OnGuildBankHide(self, event, frameType)
+    if frameType == 10 or frameType == 8 then
+        self:Debug("Bank geschlossen (frameType=" .. tostring(frameType) .. ")")
         self.isBankOpened = false
+        self.lastBankInteraction = GetTime()
+        C_Timer.After(2, function()
+            if not self.isBankOpened then
+                self.isPayingTax = false
+                self:Debug("Bank interaction cleanup completed")
+            end
+        end)
     end
 end
 
