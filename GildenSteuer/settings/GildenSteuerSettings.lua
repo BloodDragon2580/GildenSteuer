@@ -43,6 +43,16 @@ GildenSteuerSettings.AceConfig = {
 			width = "full";
 			order = 103;
 		};
+		ignoreMailIncome = {
+			type = "toggle";
+			name = GT_CONFIG_TAXES_IGNORE_MAIL;
+			desc = GT_CONFIG_TAXES_IGNORE_MAIL_DESC;
+			descStyle = "inline";
+			set = function(info, val) GildenSteuer.db.profile.ignoreMailIncome = val end;
+			get = function(info) return GildenSteuer.db.profile.ignoreMailIncome end;
+			width = "full";
+			order = 104;
+		};
 		loggingGroup = {
 			type = "header";
 			name = GT_CONFIG_LOGGING_TITLE;

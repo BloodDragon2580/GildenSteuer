@@ -19,6 +19,7 @@ local DEFAULTS = {
 		logging = true,
 		autopay = true,
 		direct = true,
+		ignoreMailIncome = false, -- 🆕 neue Option
 	},
 	char = {
 		rate = 0.10,
@@ -47,6 +48,7 @@ function GildenSteuer:OnInitialize()
 	self.isBankOpened = false
 	self.isPayingTax = false
 	self.isReady = false
+	self.isMailOpened = false -- 🆕 Mail-Status-Flag
 	self.outgoingQueue = {}
 	self.nextSyncTimestamp = time()
 	self.nextPurgeTimestamp = time()
@@ -689,6 +691,17 @@ function GildenSteuer:WasLastTransactionBankWithdraw()
     return false
 end
 
+function GildenSteuer:MAIL_SHOW()
+    self:Debug("MAIL_SHOW -> Mailbox geöffnet")
+    self.isMailOpened = true
+end
+
+function GildenSteuer:MAIL_CLOSED()
+    self:Debug("MAIL_CLOSED -> Mailbox geschlossen")
+    self.isMailOpened = false
+end
+
+
 -- Überarbeitete PLAYER_MONEY Funktion mit verbesserter Kriegsmeuten-Bank-Erkennung
 function GildenSteuer:PLAYER_MONEY(...)
     local newPlayerMoney = GetMoney()
@@ -703,9 +716,11 @@ function GildenSteuer:PLAYER_MONEY(...)
     end
 
     if delta > 0 then
-        if not self.guildId then
-            self:Debug("Not in guild, transaction ignored")
-        else
+    if not self.guildId then
+        self:Debug("Not in guild, transaction ignored")
+    elseif self.isMailOpened and self.db.profile.ignoreMailIncome then
+        self:Debug("Mail income detected and ignoreMailIncome=true -> skipping tax")
+    else
             local isBankWithdraw = false
             local timeSinceBank = GetTime() - (self.lastBankInteraction or 0)
 
@@ -849,3 +864,6 @@ GildenSteuer:RegisterEvent("PLAYER_ENTERING_WORLD")
 GildenSteuer:RegisterEvent("PLAYER_MONEY")
 GildenSteuer:RegisterEvent("PLAYER_GUILD_UPDATE")
 GildenSteuer:RegisterEvent("GUILD_ROSTER_UPDATE")
+GildenSteuer:RegisterEvent("MAIL_SHOW")
+GildenSteuer:RegisterEvent("MAIL_CLOSED")
+

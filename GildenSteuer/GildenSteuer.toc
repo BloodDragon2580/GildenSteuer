@@ -2,17 +2,23 @@
 ## Title:|cffd6266cGildenSteuer|r
 ## Notes: Zahl deine Steuer und mach die Gilde Glücklich
 ## Author: BloodDragon2580
-## Version: 13.1
+## Version: 13.2
 ## SavedVariables: GildenSteuerDB
 ## IconTexture: Interface\AddOns\GildenSteuer\Media\Texture\logo
 
 embeds.xml
 
-locale/ru.lua
+locale/ruRU.lua
 locale/enUS.lua
 locale/deDE.lua
 locale/ptBR.lua
 locale/frFR.lua
+locale/esES.lua
+locale/esMX.lua
+locale/itIT.lua
+locale/koKR.lua
+locale/zhCN.lua
+locale/zhTW.lua
 
 GildenSteuer.lua
 settings/Mitglieder.lua
