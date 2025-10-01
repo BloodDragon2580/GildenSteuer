@@ -1,4 +1,4 @@
-local VERSION = "13.5"
+local VERSION = "13.6"
 local DEVELOPMENT = false
 local SLASH_COMMAND = "gt"
 local MESSAGE_PREFIX = "GT"
@@ -50,10 +50,18 @@ function GildenSteuer:OnInitialize()
 	self.isReady = false
 	self.isMailOpened = false -- 🆕 Mail-Status-Flag
 	self.outgoingQueue = {}
+ 	self.isNormalIncomeWindow = false -- Variable für die Kulanzfrist
 	self.nextSyncTimestamp = time()
 	self.nextPurgeTimestamp = time()
-end
 
+    -- 🆕 NEU: Hook des Quest-Belohnungsfensters für die Kulanzfrist (Finaler Fix)
+    -- Startet die Kulanzfrist (5s) JEDES MAL, wenn das Fenster zur Auswahl der Belohnung (auch Gold) erscheint.
+    if QuestInfoRewardsFrame then
+        GildenSteuer:HookScript(QuestInfoRewardsFrame, "OnShow", function(self)
+            GildenSteuer:SetNormalIncomeWindow(5.0) 
+        end)
+    end
+end
 
 function GildenSteuer:HistoryKey(year, month)
 	if string.len(tostring(month)) == 1 then
@@ -739,6 +747,45 @@ function GildenSteuer:MAIL_CLOSED()
     self.isMailOpened = false
 end
 
+local NORMAL_INCOME_GRACE_SECONDS = 2.0
+
+function GildenSteuer:SetNormalIncomeWindow(seconds)
+    self:Debug("Normal Income window set for " .. tostring(seconds) .. "s")
+    self.isNormalIncomeWindow = true
+    C_Timer.After(seconds, function()
+        if self.isNormalIncomeWindow then -- Nur ausschalten, wenn es nicht direkt wieder gesetzt wurde
+            self:Debug("Normal Income window closed")
+            self.isNormalIncomeWindow = false
+        end
+    end)
+end
+
+function GildenSteuer:LOOT_OPENED()
+    self:SetNormalIncomeWindow(NORMAL_INCOME_GRACE_SECONDS)
+end
+
+function GildenSteuer:MERCHANT_SHOW()
+    -- NEU: Setze eine lange Kulanzfrist (60 Sekunden), um die gesamte Händlersitzung abzudecken.
+    self:SetNormalIncomeWindow(60.0) 
+end
+
+function GildenSteuer:MERCHANT_CLOSED()
+    self:Debug("Merchant closed. Resetting Normal Income window flag.")
+    self.isNormalIncomeWindow = false
+end
+
+function GildenSteuer:GOSSIP_SHOW()
+    self:SetNormalIncomeWindow(NORMAL_INCOME_GRACE_SECONDS)
+end
+
+function GildenSteuer:REWARD_SHOW()
+    self:SetNormalIncomeWindow(NORMAL_INCOME_GRACE_SECONDS)
+end
+
+function GildenSteuer:QUEST_TURNED_IN() -- Beibehalten
+    self:SetNormalIncomeWindow(NORMAL_INCOME_GRACE_SECONDS)
+end
+
 -- In PLAYER_MONEY: benutze live-prüfung statt allein dem Flag, um 'hängende' Flags zu vermeiden.
 function GildenSteuer:PLAYER_MONEY(...)
     local newPlayerMoney = GetMoney()
@@ -756,37 +803,45 @@ function GildenSteuer:PLAYER_MONEY(...)
         if not self.guildId then
             self:Debug("Not in guild, transaction ignored")
         else
-            -- Live-check: Kombiniere das gesetzte Flag mit tatsächlicher Frame-Visibility.
-            local mailReallyOpen = self.isMailOpened and IsMailFrameOpen()
-            if mailReallyOpen and self.db.profile.ignoreMailIncome then
-                self:Debug("Mail income detected and ignoreMailIncome=true -> skipping tax")
+            -- 1. Mail-Check: Wenn Mail offen und ignoreMailIncome aktiv, dann ist es potenziell Mail-Einkommen
+            local isMailIncome = self.db.profile.ignoreMailIncome and (self.isMailOpened or IsMailFrameOpen())
+
+            -- 2. KORREKTUR: Überschreibe isMailIncome, wenn wir uns in einem Normal Income Grace Period befinden
+            if isMailIncome and self.isNormalIncomeWindow then
+                self:Debug("Mail income flag active, but Normal Income Grace Period active (Loot/Vendor/Quest) -> NOT mail income, tax is due.")
+                isMailIncome = false
+                self.isNormalIncomeWindow = false -- Flag sofort nach Nutzung zurücksetzen, um Verwechslungen zu vermeiden
+            elseif isMailIncome then
+                self:Debug("Mail income detected and ignoreMailIncome=true -> flagging to skip tax")
+            end
+
+            -- 3. Prüfen ob es eine Bank-Interaktion war
+            local isBankWithdraw = false
+            local timeSinceBank = GetTime() - (self.lastBankInteraction or 0)
+
+            if self.isPayingTax then
+                self:Debug("Currently paying tax -> ignoring")
+                isBankWithdraw = true
+            elseif self.isBankOpened then
+                self:Debug("Bank is currently open -> treating as bank withdraw")
+                isBankWithdraw = true
+            elseif timeSinceBank <= BANK_GRACE_SECONDS then
+                self:Debug("Within grace period (" .. tostring(timeSinceBank) .. "s) -> treating as bank withdraw")
+                isBankWithdraw = true
+            end
+
+            if delta > 1000000 and not isBankWithdraw then
+                self:Debug("Large amount detected but no bank interaction -> treating as normal income")
+            end
+
+            -- 4. Steuer ignorieren, wenn Bank ODER Mail-Income-Option aktiv
+            if isBankWithdraw or isMailIncome then 
+                self:Debug("Detected special transaction (Bank/Ignored Mail) -> ignoring tax for delta " .. tostring(delta))
             else
-                local isBankWithdraw = false
-                local timeSinceBank = GetTime() - (self.lastBankInteraction or 0)
-
-                if self.isPayingTax then
-                    self:Debug("Currently paying tax -> ignoring")
-                    isBankWithdraw = true
-                elseif self.isBankOpened then
-                    self:Debug("Bank is currently open -> treating as bank withdraw")
-                    isBankWithdraw = true
-                elseif timeSinceBank <= BANK_GRACE_SECONDS then
-                    self:Debug("Within grace period (" .. tostring(timeSinceBank) .. "s) -> treating as bank withdraw")
-                    isBankWithdraw = true
-                end
-
-                if delta > 1000000 and not isBankWithdraw then
-                    self:Debug("Large amount detected but no bank interaction -> treating as normal income")
-                end
-
-                if isBankWithdraw then
-                    self:Debug("Detected bank withdraw -> ignoring tax for delta " .. tostring(delta))
-                else
-                    self:Debug("Treating as normal income -> accruing tax for delta " .. tostring(delta))
-                    local taxAmount = math.floor(delta * (self.db.char.rate or 0))
-                    self:AccrueTax(delta, taxAmount)
-                    self:NotifyStatus(self.playerName)
-                end
+                self:Debug("Treating as normal income -> accruing tax for delta " .. tostring(delta))
+                local taxAmount = math.floor(delta * (self.db.char.rate or 0))
+                self:AccrueTax(delta, taxAmount)
+                self:NotifyStatus(self.playerName)
             end
         end
 
@@ -905,4 +960,6 @@ GildenSteuer:RegisterEvent("PLAYER_GUILD_UPDATE")
 GildenSteuer:RegisterEvent("GUILD_ROSTER_UPDATE")
 GildenSteuer:RegisterEvent("MAIL_SHOW")
 GildenSteuer:RegisterEvent("MAIL_CLOSED")
-
+GildenSteuer:RegisterEvent("LOOT_OPENED")     -- Für Loot
+GildenSteuer:RegisterEvent("MERCHANT_SHOW")   -- Für Vendor-Verkauf
+GildenSteuer:RegisterEvent("MERCHANT_CLOSED")
