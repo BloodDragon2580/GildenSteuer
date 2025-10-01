@@ -1,4 +1,4 @@
-local VERSION = "13.0"
+local VERSION = "13.5"
 local DEVELOPMENT = false
 local SLASH_COMMAND = "gt"
 local MESSAGE_PREFIX = "GT"
@@ -113,7 +113,9 @@ function GildenSteuer:PrintNotReady()
 end
 
 function GildenSteuer:GetTax()
-	return self.db.char[self.guildId].tax
+    if not self.guildId then return 0 end
+    if not self.db.char[self.guildId] then return 0 end
+    return self.db.char[self.guildId].tax or 0
 end
 
 function GildenSteuer:GetRate()
@@ -691,18 +693,53 @@ function GildenSteuer:WasLastTransactionBankWithdraw()
     return false
 end
 
+-- Robustere Mail-Detektion: prüft Frame-Visibility und räumt Flag auf, falls Events ausbleiben.
+
+-- Helper: prüfe echtes Mail-Frame-Visibility (arbeitet mit Classic/Retails Varianten)
+local function IsMailFrameOpen()
+    -- Viele Clients benutzen InboxFrame / MailFrame, teste beide falls vorhanden
+    if InboxFrame and InboxFrame:IsShown() then return true end
+    if MailFrame and MailFrame:IsShown() then return true end
+    -- Fallback: falls es andere custom frames gibt, erweitere hier
+    return false
+end
+
 function GildenSteuer:MAIL_SHOW()
-    self:Debug("MAIL_SHOW -> Mailbox geöffnet")
+    self:Debug("MAIL_SHOW -> Mailbox geöffnet (event)")
     self.isMailOpened = true
+
+    -- Hook sicherheitshalber das OnHide des InboxFrame / MailFrame falls verfügbar,
+    -- damit wir das Flag auch säubern, wenn MAIL_CLOSED nicht kommt.
+    if InboxFrame and not self._mailHooked then
+        self._mailHooked = true
+        InboxFrame:HookScript("OnHide", function()
+            self:Debug("InboxFrame OnHide -> Mailbox geschlossen (hook)")
+            self.isMailOpened = false
+        end)
+    end
+    if MailFrame and not self._mailHookedMailFrame then
+        self._mailHookedMailFrame = true
+        MailFrame:HookScript("OnHide", function()
+            self:Debug("MailFrame OnHide -> Mailbox geschlossen (hook)")
+            self.isMailOpened = false
+        end)
+    end
+
+    -- Safety-timer: überprüfe nach kurzer Zeit, ob das Frame wirklich offen ist.
+    C_Timer.After(1, function()
+        if not IsMailFrameOpen() then
+            self:Debug("MAIL_SHOW: Mailframe nicht sichtbar -> Flag bereinigt")
+            self.isMailOpened = false
+        end
+    end)
 end
 
 function GildenSteuer:MAIL_CLOSED()
-    self:Debug("MAIL_CLOSED -> Mailbox geschlossen")
+    self:Debug("MAIL_CLOSED -> Mailbox geschlossen (event)")
     self.isMailOpened = false
 end
 
-
--- Überarbeitete PLAYER_MONEY Funktion mit verbesserter Kriegsmeuten-Bank-Erkennung
+-- In PLAYER_MONEY: benutze live-prüfung statt allein dem Flag, um 'hängende' Flags zu vermeiden.
 function GildenSteuer:PLAYER_MONEY(...)
     local newPlayerMoney = GetMoney()
     local delta = newPlayerMoney - self.playerMoney
@@ -716,38 +753,40 @@ function GildenSteuer:PLAYER_MONEY(...)
     end
 
     if delta > 0 then
-    if not self.guildId then
-        self:Debug("Not in guild, transaction ignored")
-    elseif self.isMailOpened and self.db.profile.ignoreMailIncome then
-        self:Debug("Mail income detected and ignoreMailIncome=true -> skipping tax")
-    else
-            local isBankWithdraw = false
-            local timeSinceBank = GetTime() - (self.lastBankInteraction or 0)
-
-            -- Bank-Abhebungskriterien
-            if self.isPayingTax then
-                self:Debug("Currently paying tax -> ignoring")
-                isBankWithdraw = true
-            elseif self.isBankOpened then
-                self:Debug("Bank is currently open -> treating as bank withdraw")
-                isBankWithdraw = true
-            elseif timeSinceBank <= BANK_GRACE_SECONDS then
-                self:Debug("Within grace period (" .. tostring(timeSinceBank) .. "s) -> treating as bank withdraw")
-                isBankWithdraw = true
-            end
-
-            -- Große Summen (>100g) nur als Bank-Abhebung behandeln, wenn Bank offen oder Grace-Period läuft
-            if delta > 1000000 and not isBankWithdraw then
-                self:Debug("Large amount detected but no bank interaction -> treating as normal income")
-            end
-
-            if isBankWithdraw then
-                self:Debug("Detected bank withdraw -> ignoring tax for delta " .. tostring(delta))
+        if not self.guildId then
+            self:Debug("Not in guild, transaction ignored")
+        else
+            -- Live-check: Kombiniere das gesetzte Flag mit tatsächlicher Frame-Visibility.
+            local mailReallyOpen = self.isMailOpened and IsMailFrameOpen()
+            if mailReallyOpen and self.db.profile.ignoreMailIncome then
+                self:Debug("Mail income detected and ignoreMailIncome=true -> skipping tax")
             else
-                self:Debug("Treating as normal income -> accruing tax for delta " .. tostring(delta))
-                local taxAmount = math.floor(delta * (self.db.char.rate or 0))
-                self:AccrueTax(delta, taxAmount)
-                self:NotifyStatus(self.playerName)
+                local isBankWithdraw = false
+                local timeSinceBank = GetTime() - (self.lastBankInteraction or 0)
+
+                if self.isPayingTax then
+                    self:Debug("Currently paying tax -> ignoring")
+                    isBankWithdraw = true
+                elseif self.isBankOpened then
+                    self:Debug("Bank is currently open -> treating as bank withdraw")
+                    isBankWithdraw = true
+                elseif timeSinceBank <= BANK_GRACE_SECONDS then
+                    self:Debug("Within grace period (" .. tostring(timeSinceBank) .. "s) -> treating as bank withdraw")
+                    isBankWithdraw = true
+                end
+
+                if delta > 1000000 and not isBankWithdraw then
+                    self:Debug("Large amount detected but no bank interaction -> treating as normal income")
+                end
+
+                if isBankWithdraw then
+                    self:Debug("Detected bank withdraw -> ignoring tax for delta " .. tostring(delta))
+                else
+                    self:Debug("Treating as normal income -> accruing tax for delta " .. tostring(delta))
+                    local taxAmount = math.floor(delta * (self.db.char.rate or 0))
+                    self:AccrueTax(delta, taxAmount)
+                    self:NotifyStatus(self.playerName)
+                end
             end
         end
 
