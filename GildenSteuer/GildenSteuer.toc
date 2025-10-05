@@ -1,30 +1,26 @@
 ## Interface: 110205
-## Title:|cffd6266cGildenSteuer|r
-## Notes: Zahl deine Steuer und mach die Gilde Glücklich
+## Title: |cffd6266cGildenSteuer|r
+## Notes: Zahl deine Steuer und mach die Gilde glücklich
+## Notes-enUS: Pay your tax and make your guild happy
+## Notes-esES: Paga tus impuestos y haz feliz a tu hermandad
+## Notes-esMX: Paga tus impuestos y haz feliz a tu hermandad
+## Notes-frFR: Paie ta taxe et rends ta guilde heureuse
+## Notes-itIT: Paga le tasse e rendi felice la tua gilda
+## Notes-koKR: 세금을 내고 길드를 행복하게 만드세요
+## Notes-ptBR: Pague seus impostos e deixe sua guilda feliz
+## Notes-ruRU: Плати налоги и радуй свою гильдию
+## Notes-zhCN: 交税让你的公会更快乐
+## Notes-zhTW: 繳稅讓你的公會更快樂
 ## Author: BloodDragon2580
-## Version: 13.7
+## Version: 13.8
 ## SavedVariables: GildenSteuerDB
 ## IconTexture: Interface\AddOns\GildenSteuer\Media\Texture\logo
+## OptionalDeps: LibDataBroker-1.1, LibDBIcon-1.0
 
 embeds.xml
-
-locale/ruRU.lua
-locale/enUS.lua
-locale/deDE.lua
-locale/ptBR.lua
-locale/frFR.lua
-locale/esES.lua
-locale/esMX.lua
-locale/itIT.lua
-locale/koKR.lua
-locale/zhCN.lua
-locale/zhTW.lua
-
+locale/locale.xml
 GildenSteuer.lua
 
 settings/Mitglieder.lua
 settings/GildenSteuerSettings.lua
 settings/GildenSteuerGUI.lua
-
-settings/GildenSteuerMiniMapButton.lua
-settings/GildenSteuerMiniMapButton.xml

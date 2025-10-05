@@ -43,16 +43,42 @@ GildenSteuerSettings.AceConfig = {
 			width = "full";
 			order = 103;
 		};
-		ignoreMailIncome = {
-			type = "toggle";
-			name = GT_CONFIG_TAXES_IGNORE_MAIL;
-			desc = GT_CONFIG_TAXES_IGNORE_MAIL_DESC;
-			descStyle = "inline";
-			set = function(info, val) GildenSteuer.db.profile.ignoreMailIncome = val end;
-			get = function(info) return GildenSteuer.db.profile.ignoreMailIncome end;
-			width = "full";
-			order = 104;
-		};
+        ignoreMailIncome = {
+            type = "toggle";
+            name = GT_CONFIG_TAXES_IGNORE_MAIL;
+            desc = GT_CONFIG_TAXES_IGNORE_MAIL_DESC;
+            descStyle = "inline";
+            set = function(info, val) GildenSteuer.db.profile.ignoreMailIncome = val end;
+            get = function(info) return GildenSteuer.db.profile.ignoreMailIncome end;
+            width = "full";
+            order = 104;
+        };
+
+        -- 🆕 Minimap-Checkbox (lokalisierte Version)
+        showMinimap = {
+            type = "toggle";
+            name = GT_CONFIG_MINIMAP_SHOW;
+            desc = GT_CONFIG_MINIMAP_SHOW_DESC;
+            descStyle = "inline";
+            width = "full";
+            order = 105; -- direkt unter ignoreMailIncome
+            set = function(info, val)
+                local db = GildenSteuer.db.profile.minimap
+                db.hide = not val  -- AceConfig: true=anzeigen; LibDBIcon: hide=false
+                local icon = LibStub("LibDBIcon-1.0", true)
+                if icon then
+                    if db.hide then
+                        icon:Hide("GildenSteuer")
+                    else
+                        icon:Show("GildenSteuer")
+                    end
+                end
+            end;
+            get = function(info)
+                local db = GildenSteuer.db.profile.minimap
+                return not db.hide  -- true = sichtbar
+            end;
+        };
 		loggingGroup = {
 			type = "header";
 			name = GT_CONFIG_LOGGING_TITLE;

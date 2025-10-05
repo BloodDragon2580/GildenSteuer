@@ -1,4 +1,4 @@
-local VERSION = "13.6"
+local VERSION = "13.8"
 local DEVELOPMENT = false
 local SLASH_COMMAND = "gt"
 local MESSAGE_PREFIX = "GT"
@@ -20,6 +20,7 @@ local DEFAULTS = {
 		autopay = true,
 		direct = true,
 		ignoreMailIncome = false, -- 🆕 neue Option
+		minimap = { hide = false }, -- 🆕 HINZUFÜGEN (LibDBIcon speichert hier)
 	},
 	char = {
 		rate = 0.10,
@@ -34,31 +35,59 @@ getmetatable(GildenSteuer).__tostring = function (self)
 end
 
 function GildenSteuer:OnInitialize()
-	self.db = LibStub("AceDB-3.0"):New("GildenSteuerDB", DEFAULTS, true)
+    self.db = LibStub("AceDB-3.0"):New("GildenSteuerDB", DEFAULTS, true)
 
-	self.playerName = nil
-	self.playerRealm = nil
-	self.playerFullName = nil
-	self.playerMoney = 0
-	self.guildId = nil
-	self.guildName = nil
-	self.guildRealm = nil
-	self.numberMembers = nil
-	self.numberMembersOnline = nil
-	self.isBankOpened = false
-	self.isPayingTax = false
-	self.isReady = false
-	self.isMailOpened = false -- 🆕 Mail-Status-Flag
-	self.outgoingQueue = {}
- 	self.isNormalIncomeWindow = false -- Variable für die Kulanzfrist
-	self.nextSyncTimestamp = time()
-	self.nextPurgeTimestamp = time()
+    -- 🆕 Minimap-Button via LibDataBroker + LibDBIcon
+    do
+        local ldb     = LibStub("LibDataBroker-1.1", true)
+        local ldbIcon = LibStub("LibDBIcon-1.0", true)
 
-    -- 🆕 NEU: Hook des Quest-Belohnungsfensters für die Kulanzfrist (Finaler Fix)
-    -- Startet die Kulanzfrist (5s) JEDES MAL, wenn das Fenster zur Auswahl der Belohnung (auch Gold) erscheint.
+        if ldb and ldbIcon then
+            local dataObj = ldb:NewDataObject("GildenSteuer", {
+                type = "data source",
+                text = "GT",
+                icon = "Interface\\Icons\\INV_Misc_NoteFolded2A",
+                OnClick = function(_, button)
+                    if button == "LeftButton" then
+                        GildenSteuer:OnGUICommand()
+                    end
+                end,
+                OnTooltipShow = function(tt)
+				    -- Titel: nimmt bevorzugt deine neue Übersetzung, sonst GT_CHAT_PREFIX, sonst Fallback
+                    tt:AddLine(GT_MINIMAP_TT_HEADER or GT_CHAT_PREFIX or "GildenSteuer")
+				    -- Linksklick-Hinweis lokalisiert, mit englischem Fallback
+                    tt:AddLine(GT_MINIMAP_TT_LEFTCLICK or "Left-click to toggle window", 0.2, 1, 0.2)
+                end,
+            })
+            if dataObj then
+                ldbIcon:Register("GildenSteuer", dataObj, self.db.profile.minimap)
+                self.ldbIcon = ldbIcon
+            end
+        end
+    end
+
+    self.playerName = nil
+    self.playerRealm = nil
+    self.playerFullName = nil
+    self.playerMoney = 0
+    self.guildId = nil
+    self.guildName = nil
+    self.guildRealm = nil
+    self.numberMembers = nil
+    self.numberMembersOnline = nil
+    self.isBankOpened = false
+    self.isPayingTax = false
+    self.isReady = false
+    self.isMailOpened = false -- 🆕 Mail-Status-Flag
+    self.outgoingQueue = {}
+    self.isNormalIncomeWindow = false -- Variable für die Kulanzfrist
+    self.nextSyncTimestamp = time()
+    self.nextPurgeTimestamp = time()
+
+    -- 🆕 NEU: Hook ...
     if QuestInfoRewardsFrame then
         GildenSteuer:HookScript(QuestInfoRewardsFrame, "OnShow", function(self)
-            GildenSteuer:SetNormalIncomeWindow(5.0) 
+            GildenSteuer:SetNormalIncomeWindow(5.0)
         end)
     end
 end
