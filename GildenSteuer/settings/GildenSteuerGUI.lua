@@ -210,6 +210,46 @@ local function CreateModernContainer()
     ApplyAlpha(IsPlayerMoving())
   end)
 
+  -- ===== Resize-Handle (unten rechts) =====
+  f:SetResizable(true)
+  -- moderne API bevorzugen
+  if f.SetResizeBounds then
+    f:SetResizeBounds(400, 300, 1200, 900)
+  else
+    -- Fallback für ältere Clients
+    if f.SetMinResize then f:SetMinResize(400, 300) end
+    if f.SetMaxResize then f:SetMaxResize(1200, 900) end
+  end
+
+  local resizer = CreateFrame("Frame", nil, f)
+  resizer:SetSize(16, 16)
+  resizer:SetPoint("BOTTOMRIGHT", -2, 2)
+  resizer:EnableMouse(true)
+  resizer:SetFrameLevel(f:GetFrameLevel() + 10)
+
+  local tex = resizer:CreateTexture(nil, "OVERLAY")
+  tex:SetAllPoints()
+  tex:SetTexture("Interface\\ChatFrame\\UI-ChatIM-SizeGrabber-Up")
+  tex:SetVertexColor(1, 1, 1, 0.6)
+
+  resizer:SetScript("OnEnter", function() tex:SetVertexColor(1, 1, 1, 1) end)
+  resizer:SetScript("OnLeave", function() tex:SetVertexColor(1, 1, 1, 0.6) end)
+
+  resizer:SetScript("OnMouseDown", function(_, button)
+    if button == "LeftButton" then
+      f:StartSizing("BOTTOMRIGHT")
+      f:SetUserPlaced(true)
+    end
+  end)
+
+  resizer:SetScript("OnMouseUp", function()
+    f:StopMovingOrSizing()
+    -- Größe speichern
+    GildenSteuer.db = GildenSteuer.db or { profile = {} }
+    GildenSteuer.db.profile.mainFrameWidth  = f:GetWidth()
+    GildenSteuer.db.profile.mainFrameHeight = f:GetHeight()
+  end)
+
   return f
 end
 
