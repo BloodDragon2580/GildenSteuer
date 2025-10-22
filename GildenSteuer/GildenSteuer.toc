@@ -12,7 +12,7 @@
 ## Notes-zhCN: 交税让你的公会更快乐
 ## Notes-zhTW: 繳稅讓你的公會更快樂
 ## Author: BloodDragon2580
-## Version: 14.2
+## Version: 14.3
 ## SavedVariables: GildenSteuerDB
 ## IconTexture: Interface\AddOns\GildenSteuer\Media\Texture\logo
 ## OptionalDeps: LibDataBroker-1.1, LibDBIcon-1.0
