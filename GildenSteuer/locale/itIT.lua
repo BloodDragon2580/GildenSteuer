@@ -28,6 +28,8 @@ GT_CONFIG_VERBOSE_LOG = "Informazioni dei membri"
 GT_CONFIG_VERBOSE_LOG_DESC = "Mostra in chat le informazioni sulle transazioni dei membri"
 GT_CONFIG_TAXES_IGNORE_MAIL = "Nessuna tassa sull'oro ricevuto per posta"
 GT_CONFIG_TAXES_IGNORE_MAIL_DESC = "Se abilitato, l'oro ricevuto per posta non viene tassato per la gilda"
+GT_CONFIG_TAXES_IGNORE_TRADE = "Ignora entrate da scambio"
+GT_CONFIG_TAXES_IGNORE_TRADE_DESC = "Se abilitato, l'oro ricevuto negli scambi con altri giocatori non viene tassato."
 
 GT_GUI_ALL_PAYED = "Tutto pagato"
 GT_GUI_COL_NAME = "Nome"

@@ -28,6 +28,8 @@ GT_CONFIG_VERBOSE_LOG = "Verbose output"
 GT_CONFIG_VERBOSE_LOG_DESC = "Print information received from guildmates."
 GT_CONFIG_TAXES_IGNORE_MAIL = "No tax on mail gold"
 GT_CONFIG_TAXES_IGNORE_MAIL_DESC = "When enabled, gold received via mail will not be taxed for guild contributions."
+GT_CONFIG_TAXES_IGNORE_TRADE = "Ignore trade income"
+GT_CONFIG_TAXES_IGNORE_TRADE_DESC = "When enabled, gold received from player trades will not be taxed."
 
 GT_GUI_ALL_PAYED = "All paid"
 GT_GUI_COL_NAME = "Name"

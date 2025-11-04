@@ -28,6 +28,8 @@ GT_CONFIG_VERBOSE_LOG = "길드원 정보"
 GT_CONFIG_VERBOSE_LOG_DESC = "길드원의 거래 정보를 채팅에 표시"
 GT_CONFIG_TAXES_IGNORE_MAIL = "우편으로 받은 골드에 세금 없음"
 GT_CONFIG_TAXES_IGNORE_MAIL_DESC = "활성화 시, 우편으로 받은 골드는 세금에서 제외됩니다."
+GT_CONFIG_TAXES_IGNORE_TRADE = "거래 수입 무시"
+GT_CONFIG_TAXES_IGNORE_TRADE_DESC = "활성화 시, 플레이어 거래로 받은 골드는 세금에서 제외됩니다."
 
 GT_GUI_ALL_PAYED = "모두 납부됨"
 GT_GUI_COL_NAME = "이름"

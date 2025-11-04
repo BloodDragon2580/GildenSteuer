@@ -28,6 +28,8 @@ GT_CONFIG_VERBOSE_LOG = "Transações de membros"
 GT_CONFIG_VERBOSE_LOG_DESC = "Mostra no chat informações sobre as transações dos membros da guilda."
 GT_CONFIG_TAXES_IGNORE_MAIL = "Sem imposto sobre ouro do correio"
 GT_CONFIG_TAXES_IGNORE_MAIL_DESC = "Quando ativado, o ouro recebido pelo correio não será tributado para a guilda."
+GT_CONFIG_TAXES_IGNORE_TRADE = "Ignorar receita de comércio"
+GT_CONFIG_TAXES_IGNORE_TRADE_DESC = "Quando ativado, o ouro recebido em trocas com jogadores não será tributado."
 
 GT_GUI_ALL_PAYED = "Tudo pago"
 GT_GUI_COL_NAME = "Nome"

@@ -26,6 +26,8 @@ GT_CONFIG_VERBOSE_LOG = "Informationen von Gildenmitgliedern"
 GT_CONFIG_VERBOSE_LOG_DESC = "Im Chat werden Informationen über die Transaktionen von Mitgliedern angezeigt"
 GT_CONFIG_TAXES_IGNORE_MAIL = "Keine Steuern auf Postgold"
 GT_CONFIG_TAXES_IGNORE_MAIL_DESC = "Wenn aktiviert, wird auf Gold, das per Post empfangen wird, keine Gildensteuer berechnet"
+GT_CONFIG_TAXES_IGNORE_TRADE = "Handels-Einnahmen ignorieren"
+GT_CONFIG_TAXES_IGNORE_TRADE_DESC = "Wenn aktiviert, werden Gold-Einnahmen aus Spieler-Handel nicht besteuert."
 
 GT_GUI_ALL_PAYED = "Alles bezahlt"
 GT_GUI_COL_NAME = "Name"

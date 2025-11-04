@@ -28,6 +28,8 @@ GT_CONFIG_DEBUG_LOG          = "Отладка"
 GT_CONFIG_DEBUG_LOG_DESC     = "Показывать отладочную информацию (для разработчиков)."
 GT_CONFIG_TAXES_IGNORE_MAIL  = "Не учитывать налоги на золото из почты"
 GT_CONFIG_TAXES_IGNORE_MAIL_DESC = "Если включено, золото, полученное по почте, не будет облагаться налогом гильдии."
+GT_CONFIG_TAXES_IGNORE_TRADE = "Игнорировать доход от торговли"
+GT_CONFIG_TAXES_IGNORE_TRADE_DESC = "Если включено, золото, полученное в торговле с игроками, не будет облагаться налогом."
 
 GT_GUI_TITLE                 = "Налоги гильдии"
 GT_GUI_ALL_PAYED             = "Всё оплачено"

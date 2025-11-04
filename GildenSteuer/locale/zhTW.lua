@@ -28,6 +28,8 @@ GT_CONFIG_VERBOSE_LOG = "公會成員資訊"
 GT_CONFIG_VERBOSE_LOG_DESC = "在聊天視窗顯示公會成員的交易資訊"
 GT_CONFIG_TAXES_IGNORE_MAIL = "不對郵件中的金幣徵稅"
 GT_CONFIG_TAXES_IGNORE_MAIL_DESC = "啟用後，郵件收到的金幣不計稅。"
+GT_CONFIG_TAXES_IGNORE_TRADE = "忽略交易收入"
+GT_CONFIG_TAXES_IGNORE_TRADE_DESC = "啟用後，與玩家交易獲得的金幣不計稅。"
 
 GT_GUI_ALL_PAYED = "全部繳清"
 GT_GUI_COL_NAME = "名字"

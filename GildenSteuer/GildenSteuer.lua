@@ -20,6 +20,7 @@ local DEFAULTS = {
 		autopay = true,
 		direct = true,
 		ignoreMailIncome = false, -- 🆕 neue Option
+		ignoreTradeIncome = false, -- 🆕 NEUE OPTION HINZUFÜGEN
 		minimap = { hide = false }, -- 🆕 HINZUFÜGEN (LibDBIcon speichert hier)
 	},
 	char = {
@@ -79,6 +80,8 @@ function GildenSteuer:OnInitialize()
     self.isPayingTax = false
     self.isReady = false
     self.isMailOpened = false -- 🆕 Mail-Status-Flag
+    self.isTradeOpened = false       -- Trade-Fenster offen?
+    self.tradeGraceUntil = 0         -- Nachlauf-Kulanz für Trade
     self.outgoingQueue = {}
     self.isNormalIncomeWindow = false -- Variable für die Kulanzfrist
     self.nextSyncTimestamp = time()
@@ -776,6 +779,31 @@ function GildenSteuer:MAIL_CLOSED()
     self.isMailOpened = false
 end
 
+-- ===== Spieler-Handel (Trade) =====
+local TRADE_GRACE_SECONDS = 5
+function GildenSteuer:TRADE_SHOW()
+    self:Debug("TRADE_SHOW -> Trade geöffnet")
+    self.isTradeOpened = true
+    -- Sicherheits-Reset (falls Blizzard-Events ausbleiben)
+    C_Timer.After(1, function()
+        if not TradeFrame or not TradeFrame:IsShown() then
+            self:Debug("TradeFrame nicht sichtbar -> Trade-Flag zurückgesetzt")
+            self.isTradeOpened = false
+        end
+    end)
+end
+function GildenSteuer:TRADE_CLOSED()
+    self:Debug("TRADE_CLOSED -> Trade geschlossen")
+    self.isTradeOpened = false
+    self.tradeGraceUntil = GetTime() + TRADE_GRACE_SECONDS
+end
+local function IsTradeIncomeActive(self)
+    if self.isTradeOpened then return true end
+    return (self.tradeGraceUntil or 0) > GetTime()
+end
+
+-- ===== Ende Spieler-Handel (Trade) =====
+
 local NORMAL_INCOME_GRACE_SECONDS = 2.0
 
 function GildenSteuer:SetNormalIncomeWindow(seconds)
@@ -835,7 +863,7 @@ function GildenSteuer:PLAYER_MONEY(...)
             -- 1. Mail-Check: Wenn Mail offen und ignoreMailIncome aktiv, dann ist es potenziell Mail-Einkommen
             local isMailIncome = self.db.profile.ignoreMailIncome and (self.isMailOpened or IsMailFrameOpen())
 
-            -- 2. KORREKTUR: Überschreibe isMailIncome, wenn wir uns in einem Normal Income Grace Period befinden
+			-- 2. KORREKTUR: Überschreibe isMailIncome, wenn wir uns in einem Normal Income Grace Period befinden
             if isMailIncome and self.isNormalIncomeWindow then
                 self:Debug("Mail income flag active, but Normal Income Grace Period active (Loot/Vendor/Quest) -> NOT mail income, tax is due.")
                 isMailIncome = false
@@ -859,13 +887,22 @@ function GildenSteuer:PLAYER_MONEY(...)
                 isBankWithdraw = true
             end
 
-            if delta > 1000000 and not isBankWithdraw then
+			if delta > 1000000 and not isBankWithdraw then
                 self:Debug("Large amount detected but no bank interaction -> treating as normal income")
             end
+            
+            -- NEU: Trade/Spieler-Handel erkennen (abschaltbar über Option)
+            local isTradeIncome = false
+            if self.db.profile.ignoreTradeIncome then
+                if IsTradeIncomeActive(self) then
+                    isTradeIncome = true
+                    self:Debug("Trade income detected and ignoreTradeIncome=true -> skipping tax")
+                end
+            end
 
-            -- 4. Steuer ignorieren, wenn Bank ODER Mail-Income-Option aktiv
-            if isBankWithdraw or isMailIncome then 
-                self:Debug("Detected special transaction (Bank/Ignored Mail) -> ignoring tax for delta " .. tostring(delta))
+            -- 4. Steuer ignorieren, wenn Bank ODER Mail-Income-Option aktiv ODER Trade-Income-Option aktiv
+            if isBankWithdraw or isMailIncome or isTradeIncome then
+                self:Debug("Detected special transaction (Bank/MailIgnored/TradeIgnored) -> ignoring tax for delta " .. tostring(delta))
             else
                 self:Debug("Treating as normal income -> accruing tax for delta " .. tostring(delta))
                 local taxAmount = math.floor(delta * (self.db.char.rate or 0))
@@ -989,6 +1026,8 @@ GildenSteuer:RegisterEvent("PLAYER_GUILD_UPDATE")
 GildenSteuer:RegisterEvent("GUILD_ROSTER_UPDATE")
 GildenSteuer:RegisterEvent("MAIL_SHOW")
 GildenSteuer:RegisterEvent("MAIL_CLOSED")
+GildenSteuer:RegisterEvent("TRADE_SHOW")   -- 🆕 NEU
+GildenSteuer:RegisterEvent("TRADE_CLOSED") -- 🆕 NEU
 GildenSteuer:RegisterEvent("LOOT_OPENED")     -- Für Loot
 GildenSteuer:RegisterEvent("MERCHANT_SHOW")   -- Für Vendor-Verkauf
 GildenSteuer:RegisterEvent("MERCHANT_CLOSED")
