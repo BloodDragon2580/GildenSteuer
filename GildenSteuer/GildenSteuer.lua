@@ -859,56 +859,68 @@ function GildenSteuer:PLAYER_MONEY(...)
     if delta > 0 then
         if not self.guildId then
             self:Debug("Not in guild, transaction ignored")
-        else
-            -- 1. Mail-Check: Wenn Mail offen und ignoreMailIncome aktiv, dann ist es potenziell Mail-Einkommen
-            local isMailIncome = self.db.profile.ignoreMailIncome and (self.isMailOpened or IsMailFrameOpen())
+            self:UpdatePlayerMoney(newPlayerMoney)
+            return
+        end
 
-			-- 2. KORREKTUR: Überschreibe isMailIncome, wenn wir uns in einem Normal Income Grace Period befinden
-            if isMailIncome and self.isNormalIncomeWindow then
-                self:Debug("Mail income flag active, but Normal Income Grace Period active (Loot/Vendor/Quest) -> NOT mail income, tax is due.")
-                isMailIncome = false
-                self.isNormalIncomeWindow = false -- Flag sofort nach Nutzung zurücksetzen, um Verwechslungen zu vermeiden
-            elseif isMailIncome then
-                self:Debug("Mail income detected and ignoreMailIncome=true -> flagging to skip tax")
-            end
+        -- ===== 1) TRADE hat höchste Priorität =====
+        local tradeActive  = IsTradeIncomeActive(self)         -- true, wenn TradeFrame offen oder Grace aktiv
+        local ignoreTrade  = self.db.profile.ignoreTradeIncome == true
 
-            -- 3. Prüfen ob es eine Bank-Interaktion war
-            local isBankWithdraw = false
-            local timeSinceBank = GetTime() - (self.lastBankInteraction or 0)
-
-            if self.isPayingTax then
-                self:Debug("Currently paying tax -> ignoring")
-                isBankWithdraw = true
-            elseif self.isBankOpened then
-                self:Debug("Bank is currently open -> treating as bank withdraw")
-                isBankWithdraw = true
-            elseif timeSinceBank <= BANK_GRACE_SECONDS then
-                self:Debug("Within grace period (" .. tostring(timeSinceBank) .. "s) -> treating as bank withdraw")
-                isBankWithdraw = true
-            end
-
-			if delta > 1000000 and not isBankWithdraw then
-                self:Debug("Large amount detected but no bank interaction -> treating as normal income")
-            end
-            
-            -- NEU: Trade/Spieler-Handel erkennen (abschaltbar über Option)
-            local isTradeIncome = false
-            if self.db.profile.ignoreTradeIncome then
-                if IsTradeIncomeActive(self) then
-                    isTradeIncome = true
-                    self:Debug("Trade income detected and ignoreTradeIncome=true -> skipping tax")
-                end
-            end
-
-            -- 4. Steuer ignorieren, wenn Bank ODER Mail-Income-Option aktiv ODER Trade-Income-Option aktiv
-            if isBankWithdraw or isMailIncome or isTradeIncome then
-                self:Debug("Detected special transaction (Bank/MailIgnored/TradeIgnored) -> ignoring tax for delta " .. tostring(delta))
+        if tradeActive then
+            if ignoreTrade then
+                self:Debug("Trade income detected and ignoreTradeIncome=true -> skipping tax")
+                self:UpdatePlayerMoney(newPlayerMoney)
+                return
             else
-                self:Debug("Treating as normal income -> accruing tax for delta " .. tostring(delta))
+                self:Debug("Trade income detected and ignoreTradeIncome=false -> tax WILL apply (forcing normal taxation)")
                 local taxAmount = math.floor(delta * (self.db.char.rate or 0))
                 self:AccrueTax(delta, taxAmount)
                 self:NotifyStatus(self.playerName)
+                self:UpdatePlayerMoney(newPlayerMoney)
+                return
             end
+        end
+        -- ===== Ende Trade-Priorität =====
+
+        -- 2) MAIL-Check (nur relevant, wenn Option aktiv)
+        local isMailIncome = self.db.profile.ignoreMailIncome and (self.isMailOpened or (IsMailFrameOpen and IsMailFrameOpen()))
+        if isMailIncome and self.isNormalIncomeWindow then
+            -- Normal-Income-Fenster (Loot/Quest/Vendor) überschreibt Mail-Ignorieren
+            self:Debug("Mail income flag active, but Normal Income Grace Period active -> NOT mail income, tax is due.")
+            isMailIncome = false
+            self.isNormalIncomeWindow = false
+        elseif isMailIncome then
+            self:Debug("Mail income detected and ignoreMailIncome=true -> will skip tax unless other rules force it")
+        end
+
+        -- 3) BANK-Check
+        local isBankWithdraw = false
+        local timeSinceBank = GetTime() - (self.lastBankInteraction or 0)
+
+        if self.isPayingTax then
+            self:Debug("Currently paying tax -> treating as bank withdraw")
+            isBankWithdraw = true
+        elseif self.isBankOpened then
+            self:Debug("Bank is currently open -> treating as bank withdraw")
+            isBankWithdraw = true
+        elseif timeSinceBank <= 10 then -- BANK_GRACE_SECONDS
+            self:Debug("Within bank grace period (" .. tostring(timeSinceBank) .. "s) -> treating as bank withdraw")
+            isBankWithdraw = true
+        end
+
+        if delta > 1000000 and not isBankWithdraw and not isMailIncome then
+            self:Debug("Large amount detected and no bank/mail -> treating as normal income")
+        end
+
+        -- 4) Finale Entscheidung (ohne Trade, da oben schon behandelt)
+        if isBankWithdraw or isMailIncome then
+            self:Debug("Detected special transaction (Bank or MailIgnored) -> skipping tax for delta " .. tostring(delta))
+        else
+            self:Debug("Treating as normal income -> accruing tax for delta " .. tostring(delta))
+            local taxAmount = math.floor(delta * (self.db.char.rate or 0))
+            self:AccrueTax(delta, taxAmount)
+            self:NotifyStatus(self.playerName)
         end
 
     elseif delta < 0 then
