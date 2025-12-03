@@ -1026,7 +1026,19 @@ function GildenSteuer:GUILD_ROSTER_UPDATE( ... )
 	self:Ready()
 end
 
-GildenSteuer:Hook("ChatFrame_OnHyperlinkShow", true)
+-- Kompatibler Hyperlink-Hook:
+-- Ältere Clients hatten eine globale Funktion ChatFrame_OnHyperlinkShow,
+-- in TWW / 11.2.7 ist sie nicht mehr global verfügbar.
+if ChatFrame_OnHyperlinkShow then
+    -- Falls sie (z.B. in älteren Versionen oder anderen Clients) noch existiert:
+    GildenSteuer:Hook("ChatFrame_OnHyperlinkShow", true)
+else
+    -- Retail 11.2.7+: an SetItemRef anhängen, das wird bei Link-Klicks im Chat aufgerufen
+    hooksecurefunc("SetItemRef", function(link, text, button, chatFrame)
+        -- Verwende deine bestehende Logik
+        GildenSteuer:ChatFrame_OnHyperlinkShow(chatFrame, link, text, button)
+    end)
+end
 
 GildenSteuer:RegisterComm(MESSAGE_PREFIX)
 
