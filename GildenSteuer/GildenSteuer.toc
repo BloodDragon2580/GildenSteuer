@@ -1,4 +1,4 @@
-## Interface: 120000
+## Interface: 120001
 ## Title: |cffd6266cGildenSteuer|r
 ## Notes: Zahl deine Steuer und mach die Gilde glücklich
 ## Notes-enUS: Pay your tax and make your guild happy
