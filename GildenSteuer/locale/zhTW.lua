@@ -57,3 +57,29 @@ GT_CONFIG_MINIMAP_SHOW_DESC = "在小地圖上顯示或隱藏 GildenSteuer 圖�
 
 GT_MINIMAP_TT_HEADER = "GildenSteuer"
 GT_MINIMAP_TT_LEFTCLICK = "左鍵：顯示/隱藏視窗"
+
+
+-- Warband Auto Deposit (integrated)
+GT_CONFIG_WAD_TITLE = "戰隊自動存入"
+GT_CONFIG_WAD_ENABLED = "啟用戰隊自動存入"
+GT_CONFIG_WAD_ENABLED_DESC = "開啟戰隊銀行（帳號銀行）時，自動把多餘金幣存入。每個角色獨立設定。"
+GT_CONFIG_WAD_GOLDTOKEEP = "保留金幣（g）"
+GT_CONFIG_WAD_GOLDTOKEEP_DESC = "此角色始終在背包中保留的金幣數量。"
+GT_CONFIG_WAD_MINDEPOSIT = "最小存入（g）"
+GT_CONFIG_WAD_MINDEPOSIT_DESC = "只有存入金額大於此門檻才會存入（若保留金幣=0則忽略）。"
+GT_CONFIG_WAD_DEPOSITNOW = "立即存入"
+GT_CONFIG_WAD_DEPOSITNOW_DESC = "立刻嘗試存入（僅在戰隊銀行開啟時有效）。"
+GT_CHAT_WAD_DEPOSITED = "戰隊銀行：已存入 %s。"
+GT_CHAT_WAD_STATUS = "戰隊自動存入：%s"
+GT_CHAT_WAD_ON = "開"
+GT_CHAT_WAD_OFF = "關"
+GT_CHAT_WAD_KEEP_CHANGED = "戰隊自動存入：保留 %sg。"
+GT_CHAT_WAD_MIN_CHANGED = "戰隊自動存入：最小存入 %sg。"
+
+-- Warband Auto Deposit: extra option strings
+GT_CONFIG_WAD_SAVE = "儲存"
+GT_CONFIG_WAD_SAVE_DESC = "儲存此角色輸入的數值。"
+GT_CHAT_WAD_MIGRATION_HINT =
+"|cffffd200新增：|r |cff00ff96戰隊存款|r 已可用，但 |cffff6060預設為關閉|r。\n" ..
+"可在 |cff66ccff插件選項|r 中啟用。"
+GT_POPUP_DRAG_HINT = "(拖曳以移動)"

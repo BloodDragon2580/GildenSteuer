@@ -158,6 +158,77 @@ GildenSteuerSettings.AceConfig = {
             end;
             get = function(info) return GildenSteuer.db.profile.verbose end;
         };
+
+        warbandGroup = {
+            type = "header";
+            name = GT_CONFIG_WAD_TITLE;
+            order = 120;
+        };
+        wadEnabled = {
+            type = "toggle";
+            name = GT_CONFIG_WAD_ENABLED;
+            desc = GT_CONFIG_WAD_ENABLED_DESC;
+            descStyle = "inline";
+            width = "full";
+            order = 121;
+            set = function(info, val)
+                GildenSteuer.db.char.warbandAutoDeposit.enabled = val
+                GS_Commit((GT_CHAT_WAD_STATUS and string.format(GT_CHAT_WAD_STATUS, val and (GT_CHAT_WAD_ON or "ON") or (GT_CHAT_WAD_OFF or "OFF")))
+                    or ("WarbandAutoDeposit: " .. (val and "ON" or "OFF")), true)
+            end;
+            get = function(info) return (GildenSteuer.db.char.warbandAutoDeposit and GildenSteuer.db.char.warbandAutoDeposit.enabled) end;
+        };
+                wadGoldToKeep = {
+            type = "input";
+            name = GT_CONFIG_WAD_GOLDTOKEEP;
+            desc = GT_CONFIG_WAD_GOLDTOKEEP_DESC;
+            descStyle = "inline";
+            width = "full";
+            order = 122;
+            set = function(info, val)
+                -- value is in gold (g). Store as draft until user clicks Save.
+                local n = tonumber(val)
+                if n == nil then return end
+                if n < 0 then n = 0 end
+                GildenSteuerSettings._wadDraftKeepGold = n
+                GS_Commit(nil, false)
+            end;
+            get = function(info)
+                local draft = GildenSteuerSettings._wadDraftKeepGold
+                if draft ~= nil then return tostring(draft) end
+                if GildenSteuer and GildenSteuer.db and GildenSteuer.db.char and GildenSteuer.db.char.warbandAutoDeposit then
+                    return tostring((GildenSteuer.db.char.warbandAutoDeposit.goldToKeep or 0) / 10000)
+                end
+                return "0"
+            end;
+        };
+
+        wadSave = {
+            type = "execute";
+            name = GT_CONFIG_WAD_SAVE;
+            desc = GT_CONFIG_WAD_SAVE_DESC;
+            width = "full";
+            order = 124;
+            func = function()
+                if not (GildenSteuer and GildenSteuer.InitWarbandAutoDeposit) then return end
+                GildenSteuer:InitWarbandAutoDeposit()
+                local s = GildenSteuer.db.char.warbandAutoDeposit
+                local keep = GildenSteuerSettings._wadDraftKeepGold
+
+                if keep ~= nil then
+                    s.goldToKeep = (tonumber(keep) or 0) * 10000
+                    if GT_CHAT_WAD_KEEP_CHANGED then
+                        GildenSteuer:Print(string.format(GT_CHAT_WAD_KEEP_CHANGED, tostring(keep)))
+                    end
+                end
+
+                -- clear drafts after save
+                GildenSteuerSettings._wadDraftKeepGold = nil
+
+                GS_Commit(nil, true)
+            end;
+        };
+
         debug = {
             type = "toggle";
             name = GT_CONFIG_DEBUG_LOG;

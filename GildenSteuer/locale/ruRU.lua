@@ -57,3 +57,29 @@ GT_CONFIG_MINIMAP_SHOW_DESC = "Показывать или скрывать зн
 
 GT_MINIMAP_TT_HEADER = "GildenSteuer"
 GT_MINIMAP_TT_LEFTCLICK = "ЛКМ: показать/скрыть окно"
+
+
+-- Warband Auto Deposit (integrated)
+GT_CONFIG_WAD_TITLE = "Автодепозит в банк отряда"
+GT_CONFIG_WAD_ENABLED = "Включить автодепозит"
+GT_CONFIG_WAD_ENABLED_DESC = "Автоматически вносит лишнее золото в банк отряда при открытии (аккаунтный банк). Настройка для каждого персонажа."
+GT_CONFIG_WAD_GOLDTOKEEP = "Оставлять золота (з)"
+GT_CONFIG_WAD_GOLDTOKEEP_DESC = "Сколько золота этот персонаж всегда оставляет в сумках."
+GT_CONFIG_WAD_MINDEPOSIT = "Минимальный депозит (з)"
+GT_CONFIG_WAD_MINDEPOSIT_DESC = "Вносит только если сумма депозита больше этого порога (игнорируется, если «Оставлять золота» = 0)."
+GT_CONFIG_WAD_DEPOSITNOW = "Внести сейчас"
+GT_CONFIG_WAD_DEPOSITNOW_DESC = "Пробует внести прямо сейчас (работает только при открытом банке отряда)."
+GT_CHAT_WAD_DEPOSITED = "Банк отряда: внесено %s."
+GT_CHAT_WAD_STATUS = "Автодепозит: %s"
+GT_CHAT_WAD_ON = "ВКЛ"
+GT_CHAT_WAD_OFF = "ВЫКЛ"
+GT_CHAT_WAD_KEEP_CHANGED = "Автодепозит: оставлять %sз."
+GT_CHAT_WAD_MIN_CHANGED = "Автодепозит: минимум %sз."
+
+-- Warband Auto Deposit: extra option strings
+GT_CONFIG_WAD_SAVE = "Сохранить"
+GT_CONFIG_WAD_SAVE_DESC = "Сохраняет введённые значения для этого персонажа."
+GT_CHAT_WAD_MIGRATION_HINT =
+"|cffffd200Новое:|r |cff00ff96Взнос в банк дружины|r доступен, но |cffff6060по умолчанию выключен|r.\n" ..
+"Включи в |cff66ccffнастройках аддона|r."
+GT_POPUP_DRAG_HINT = "(перетащите, чтобы переместить)"

@@ -57,3 +57,29 @@ GT_CONFIG_MINIMAP_SHOW_DESC = "Mostra ou oculta o ícone do GildenSteuer no mini
 
 GT_MINIMAP_TT_HEADER = "GildenSteuer"
 GT_MINIMAP_TT_LEFTCLICK = "Clique esquerdo: mostrar/ocultar a janela"
+
+
+-- Warband Auto Deposit (integrated)
+GT_CONFIG_WAD_TITLE = "Depósito automático da Warband"
+GT_CONFIG_WAD_ENABLED = "Ativar depósito automático"
+GT_CONFIG_WAD_ENABLED_DESC = "Deposita automaticamente o ouro excedente no Banco da Warband ao abri-lo (banco da conta). Configuração por personagem."
+GT_CONFIG_WAD_GOLDTOKEEP = "Ouro para manter (o)"
+GT_CONFIG_WAD_GOLDTOKEEP_DESC = "Quanto ouro este personagem deve manter sempre nas bolsas."
+GT_CONFIG_WAD_MINDEPOSIT = "Depósito mínimo (o)"
+GT_CONFIG_WAD_MINDEPOSIT_DESC = "Só deposita se o valor a depositar for maior que este limite (ignorado se Ouro para manter = 0)."
+GT_CONFIG_WAD_DEPOSITNOW = "Depositar agora"
+GT_CONFIG_WAD_DEPOSITNOW_DESC = "Tenta depositar agora (funciona apenas com o Banco da Warband aberto)."
+GT_CHAT_WAD_DEPOSITED = "Banco da Warband: %s depositado."
+GT_CHAT_WAD_STATUS = "Depósito automático: %s"
+GT_CHAT_WAD_ON = "LIGADO"
+GT_CHAT_WAD_OFF = "DESLIGADO"
+GT_CHAT_WAD_KEEP_CHANGED = "Depósito automático: manter %so."
+GT_CHAT_WAD_MIN_CHANGED = "Depósito automático: depósito mínimo %so."
+
+-- Warband Auto Deposit: extra option strings
+GT_CONFIG_WAD_SAVE = "Salvar"
+GT_CONFIG_WAD_SAVE_DESC = "Salva os valores inseridos para este personagem."
+GT_CHAT_WAD_MIGRATION_HINT =
+"|cffffd200Novo:|r |cff00ff96Depósito da Brigada|r disponível, mas |cffff6060desativado por padrão|r.\n" ..
+"Ative nas |cff66ccffopções do addon|r."
+GT_POPUP_DRAG_HINT = "(arraste para mover)"

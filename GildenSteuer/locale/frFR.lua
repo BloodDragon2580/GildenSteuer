@@ -57,3 +57,29 @@ GT_CONFIG_MINIMAP_SHOW_DESC = "Affiche ou masque l’icône de GildenSteuer sur 
 
 GT_MINIMAP_TT_HEADER = "GildenSteuer"
 GT_MINIMAP_TT_LEFTCLICK = "Clic gauche : afficher/masquer la fenêtre"
+
+
+-- Warband Auto Deposit (integrated)
+GT_CONFIG_WAD_TITLE = "Dépôt automatique de bande de guerre"
+GT_CONFIG_WAD_ENABLED = "Activer le dépôt automatique"
+GT_CONFIG_WAD_ENABLED_DESC = "Dépose automatiquement l’or excédentaire dans la banque de bande de guerre lorsque tu l’ouvres (banque de compte). Réglage par personnage."
+GT_CONFIG_WAD_GOLDTOKEEP = "Or à garder (po)"
+GT_CONFIG_WAD_GOLDTOKEEP_DESC = "Quantité d’or que ce personnage conserve toujours dans ses sacs."
+GT_CONFIG_WAD_MINDEPOSIT = "Dépôt minimum (po)"
+GT_CONFIG_WAD_MINDEPOSIT_DESC = "Ne dépose que si le montant à déposer est supérieur à ce seuil (ignoré si Or à garder = 0)."
+GT_CONFIG_WAD_DEPOSITNOW = "Déposer maintenant"
+GT_CONFIG_WAD_DEPOSITNOW_DESC = "Tente de déposer immédiatement (fonctionne uniquement lorsque la banque de bande de guerre est ouverte)."
+GT_CHAT_WAD_DEPOSITED = "Banque de bande de guerre : %s déposé."
+GT_CHAT_WAD_STATUS = "Dépôt automatique : %s"
+GT_CHAT_WAD_ON = "ON"
+GT_CHAT_WAD_OFF = "OFF"
+GT_CHAT_WAD_KEEP_CHANGED = "Dépôt automatique : garder %spo."
+GT_CHAT_WAD_MIN_CHANGED = "Dépôt automatique : dépôt minimum %spo."
+
+-- Warband Auto Deposit: extra option strings
+GT_CONFIG_WAD_SAVE = "Enregistrer"
+GT_CONFIG_WAD_SAVE_DESC = "Enregistre les valeurs saisies pour ce personnage."
+GT_CHAT_WAD_MIGRATION_HINT =
+"|cffffd200Nouveau :|r |cff00ff96Dépôt de bande de guerre|r est disponible, mais |cffff6060désactivé par défaut|r.\n" ..
+"Active-le dans les |cff66ccffoptions de l’addon|r."
+GT_POPUP_DRAG_HINT = "(glisser pour déplacer)"

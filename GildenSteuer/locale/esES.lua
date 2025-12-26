@@ -57,3 +57,29 @@ GT_CONFIG_MINIMAP_SHOW_DESC = "Muestra u oculta el icono de GildenSteuer en el m
 
 GT_MINIMAP_TT_HEADER = "GildenSteuer"
 GT_MINIMAP_TT_LEFTCLICK = "Clic izquierdo: mostrar/ocultar ventana"
+
+
+-- Warband Auto Deposit (integrated)
+GT_CONFIG_WAD_TITLE = "Depósito automático de banda guerrera"
+GT_CONFIG_WAD_ENABLED = "Activar depósito automático"
+GT_CONFIG_WAD_ENABLED_DESC = "Deposita automáticamente el oro sobrante en el banco de la Banda guerrera al abrirlo (banco de cuenta). Ajuste por personaje."
+GT_CONFIG_WAD_GOLDTOKEEP = "Oro a conservar (o)"
+GT_CONFIG_WAD_GOLDTOKEEP_DESC = "Cantidad de oro que este personaje siempre conserva en las bolsas."
+GT_CONFIG_WAD_MINDEPOSIT = "Depósito mínimo (o)"
+GT_CONFIG_WAD_MINDEPOSIT_DESC = "Solo deposita si la cantidad a depositar es mayor que este umbral (se ignora si Oro a conservar = 0)."
+GT_CONFIG_WAD_DEPOSITNOW = "Depositar ahora"
+GT_CONFIG_WAD_DEPOSITNOW_DESC = "Intenta depositar ahora mismo (solo funciona con el banco de la Banda guerrera abierto)."
+GT_CHAT_WAD_DEPOSITED = "Banco de Banda guerrera: %s depositado."
+GT_CHAT_WAD_STATUS = "Depósito automático: %s"
+GT_CHAT_WAD_ON = "ON"
+GT_CHAT_WAD_OFF = "OFF"
+GT_CHAT_WAD_KEEP_CHANGED = "Depósito automático: conservar %so."
+GT_CHAT_WAD_MIN_CHANGED = "Depósito automático: depósito mínimo %so."
+
+-- Warband Auto Deposit: extra option strings
+GT_CONFIG_WAD_SAVE = "Guardar"
+GT_CONFIG_WAD_SAVE_DESC = "Guarda los valores introducidos para este personaje."
+GT_CHAT_WAD_MIGRATION_HINT =
+"|cffffd200Nuevo:|r |cff00ff96Depósito de hermandad de guerra|r disponible, pero |cffff6060desactivado por defecto|r.\n" ..
+"Actívalo en las |cff66ccffopciones del addon|r."
+GT_POPUP_DRAG_HINT = "(arrastrar para mover)"

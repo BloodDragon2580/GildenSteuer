@@ -1,4 +1,7 @@
-local AceGUI = LibStub("AceGUI-3.0")
+local AceAddon = LibStub("AceAddon-3.0")
+local Addon = AceAddon:GetAddon("GildenSteuer", true)
+if not Addon then return end
+local GildenSteuer = Addon
 
 local TABLE_UPDATE_THRESHOLD = 5
 

@@ -57,3 +57,29 @@ GT_CONFIG_MINIMAP_SHOW_DESC = "미니맵에 GildenSteuer 아이콘을 표시하�
 
 GT_MINIMAP_TT_HEADER = "GildenSteuer"
 GT_MINIMAP_TT_LEFTCLICK = "좌클릭: 창 표시/숨기기"
+
+
+-- Warband Auto Deposit (integrated)
+GT_CONFIG_WAD_TITLE = "전투부대 자동 입금"
+GT_CONFIG_WAD_ENABLED = "자동 입금 사용"
+GT_CONFIG_WAD_ENABLED_DESC = "전투부대 은행(계정 은행)을 열 때 남는 골드를 자동으로 입금합니다. 캐릭터별 설정입니다."
+GT_CONFIG_WAD_GOLDTOKEEP = "보유 골드 (g)"
+GT_CONFIG_WAD_GOLDTOKEEP_DESC = "이 캐릭터가 항상 가방에 남겨둘 골드입니다."
+GT_CONFIG_WAD_MINDEPOSIT = "최소 입금 (g)"
+GT_CONFIG_WAD_MINDEPOSIT_DESC = "입금할 금액이 이 값보다 클 때만 입금합니다(보유 골드=0이면 무시)."
+GT_CONFIG_WAD_DEPOSITNOW = "지금 입금"
+GT_CONFIG_WAD_DEPOSITNOW_DESC = "지금 즉시 입금을 시도합니다(전투부대 은행이 열려 있을 때만)."
+GT_CHAT_WAD_DEPOSITED = "전투부대 은행: %s 입금."
+GT_CHAT_WAD_STATUS = "자동 입금: %s"
+GT_CHAT_WAD_ON = "ON"
+GT_CHAT_WAD_OFF = "OFF"
+GT_CHAT_WAD_KEEP_CHANGED = "자동 입금: %sg 보유."
+GT_CHAT_WAD_MIN_CHANGED = "자동 입금: 최소 %sg."
+
+-- Warband Auto Deposit: extra option strings
+GT_CONFIG_WAD_SAVE = "저장"
+GT_CONFIG_WAD_SAVE_DESC = "이 캐릭터의 입력한 값을 저장합니다."
+GT_CHAT_WAD_MIGRATION_HINT =
+"|cffffd200신규:|r |cff00ff96전투부대 입금|r 기능이 추가되었지만 |cffff6060기본값은 비활성화|r 입니다.\n" ..
+"|cff66ccff애드온 옵션|r에서 활성화할 수 있어요."
+GT_POPUP_DRAG_HINT = "(드래그하여 이동)"

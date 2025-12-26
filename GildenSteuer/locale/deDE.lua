@@ -55,3 +55,24 @@ GT_CONFIG_MINIMAP_SHOW_DESC = "Zeigt oder versteckt das GildenSteuer-Symbol an d
 
 GT_MINIMAP_TT_HEADER = "GildenSteuer"
 GT_MINIMAP_TT_LEFTCLICK = "Linksklick: Fenster ein-/ausblenden"
+
+
+-- Warband Auto Deposit (integrated)
+GT_CONFIG_WAD_TITLE = "Kriegsmeuten-Autoeinzahlung"
+GT_CONFIG_WAD_ENABLED = "Kriegsmeuten-Autoeinzahlung aktivieren"
+GT_CONFIG_WAD_ENABLED_DESC = "Zahlt überschüssiges Gold automatisch in die Kriegsmeutenbank ein, sobald du sie öffnest (Account Bank). Einstellung pro Charakter."
+GT_CONFIG_WAD_GOLDTOKEEP = "Gold behalten (g)"
+GT_CONFIG_WAD_GOLDTOKEEP_DESC = "So viel Gold behält dieser Charakter immer im Inventar."
+GT_CHAT_WAD_DEPOSITED = "Kriegsmeutenbank: %s eingezahlt."
+GT_CHAT_WAD_STATUS = "Kriegsmeuten-Autoeinzahlung: %s"
+GT_CHAT_WAD_ON = "AN"
+GT_CHAT_WAD_OFF = "AUS"
+GT_CHAT_WAD_KEEP_CHANGED = "Kriegsmeuten-Autoeinzahlung: Behalte %sg."
+
+-- Warband Auto Deposit: extra option strings
+GT_CONFIG_WAD_SAVE = "Speichern"
+GT_CONFIG_WAD_SAVE_DESC = "Speichert die eingegebenen Werte für diesen Charakter."
+GT_CHAT_WAD_MIGRATION_HINT =
+"|cffffd200Neu:|r |cff00ff96Kriegsmeuten-Deposit|r ist verfügbar, aber |cffff6060standardmäßig deaktiviert|r.\n" ..
+"Aktiviere es in den |cff66ccffAddon-Optionen|r."
+GT_POPUP_DRAG_HINT = "(ziehen zum Verschieben)"

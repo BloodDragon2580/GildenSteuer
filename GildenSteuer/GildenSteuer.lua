@@ -1,4 +1,4 @@
-local VERSION = "14.0"
+local VERSION = "15.0"
 local DEVELOPMENT = false
 local SLASH_COMMAND = "gt"
 local MESSAGE_PREFIX = "GT"
@@ -8,37 +8,41 @@ local PURGE_DATA_PERIOD = 3 * 60
 local QUEUE_ITERATION = 15
 
 local DEFAULTS = {
-	realm = {
-		history = {},
-		status = {}
-	},
-	profile = {
-		version = 0,
-		debug = false,
-		verbose = false,
-		logging = true,
-		autopay = true,
-		direct = true,
-		ignoreMailIncome = false, -- 🆕 neue Option
-		ignoreTradeIncome = false, -- 🆕 NEUE OPTION HINZUFÜGEN
-		minimap = { hide = false }, -- 🆕 HINZUFÜGEN (LibDBIcon speichert hier)
-	},
-	char = {
-		rate = 0.10,
-	},
+  realm = { history = {}, status = {} },
+  profile = {
+    version = 0,
+    debug = false,
+    verbose = false,
+    logging = true,
+    autopay = true,
+    direct = true,
+    ignoreMailIncome = false,
+    ignoreTradeIncome = false,
+    minimap = { hide = false },
+  },
+  char = {
+    rate = 0.10,
+    -- optional: warbandAutoDeposit wird auch per Init migriert, aber kann hier stehen:
+    -- warbandAutoDeposit = { enabled=false, goldToKeep=10000000 },
+  },
 }
 
+GildenSteuer = LibStub("AceAddon-3.0"):NewAddon(
+  "GildenSteuer",
+  "AceConsole-3.0",
+  "AceEvent-3.0",
+  "AceComm-3.0",
+  "AceHook-3.0"
+)
 
-GildenSteuer = LibStub("AceAddon-3.0"):NewAddon("GildenSteuer", "AceConsole-3.0", "AceEvent-3.0", "AceComm-3.0", "AceHook-3.0")
-
-getmetatable(GildenSteuer).__tostring = function (self)
-	return GT_CHAT_PREFIX
+getmetatable(GildenSteuer).__tostring = function()
+  return GT_CHAT_PREFIX or "GildenSteuer"
 end
 
 function GildenSteuer:OnInitialize()
     self.db = LibStub("AceDB-3.0"):New("GildenSteuerDB", DEFAULTS, true)
 
-    -- 🆕 Minimap-Button via LibDataBroker + LibDBIcon
+    -- NEW NEW: Minimap-Button via LibDataBroker + LibDBIcon
     do
         local ldb     = LibStub("LibDataBroker-1.1", true)
         local ldbIcon = LibStub("LibDBIcon-1.0", true)
@@ -79,7 +83,7 @@ function GildenSteuer:OnInitialize()
     self.isBankOpened = false
     self.isPayingTax = false
     self.isReady = false
-    self.isMailOpened = false -- 🆕 Mail-Status-Flag
+    self.isMailOpened = false -- NEW NEW: Mail-Status-Flag
     self.isTradeOpened = false       -- Trade-Fenster offen?
     self.tradeGraceUntil = 0         -- Nachlauf-Kulanz für Trade
     self.outgoingQueue = {}
@@ -87,12 +91,169 @@ function GildenSteuer:OnInitialize()
     self.nextSyncTimestamp = time()
     self.nextPurgeTimestamp = time()
 
-    -- 🆕 NEU: Hook ...
+    -- NEW NEW: NEU: Hook ...
     if QuestInfoRewardsFrame then
         GildenSteuer:HookScript(QuestInfoRewardsFrame, "OnShow", function(self)
             GildenSteuer:SetNormalIncomeWindow(5.0)
         end)
     end
+
+    -- NEW NEW: WarbandAutoDeposit (per character)
+    if self.InitWarbandAutoDeposit then
+        self:InitWarbandAutoDeposit()
+    end
+
+end
+
+
+-- ============================================================
+-- WarbandAutoDeposit (integrated)
+-- Deposits gold into the Warband Bank (Account Bank) when opened.
+-- Per-character settings are stored in GildenSteuerDB.char.warbandAutoDeposit
+-- ============================================================
+
+local _GS_GetMoney = GetMoney
+local _GS_C_Bank = C_Bank
+local _GS_C_Timer = C_Timer
+local _GS_GetCoinTextureString = GetCoinTextureString
+
+-- ============================================================
+-- One-time Popup (Migration / Info)
+-- ============================================================
+function GildenSteuer:ShowOneTimePopup(text)
+    if not text or text == "" then return end
+
+    -- avoid duplicates
+    if self._oneTimePopupShownThisSession then return end
+    self._oneTimePopupShownThisSession = true
+
+    local f = CreateFrame("Frame", "GildenSteuer_OneTimePopup", UIParent, "BackdropTemplate")
+    f:SetSize(520, 160)
+    f:SetPoint("TOP", UIParent, "TOP", 0, -140)
+    f:SetFrameStrata("DIALOG")
+    f:SetClampedToScreen(true)
+    f:SetMovable(true)
+    f:EnableMouse(true)
+	f:SetFrameLevel(100)
+    f:RegisterForDrag("LeftButton")
+    f:SetScript("OnDragStart", function(self) self:StartMoving() end)
+    f:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end)
+
+    f:SetBackdrop({
+        bgFile = "Interface\\DialogFrame\\UI-DialogBox-Background-Dark",
+        edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+        tile = true, tileSize = 16, edgeSize = 16,
+        insets = { left = 4, right = 4, top = 4, bottom = 4 }
+    })
+    f:SetBackdropColor(0, 0, 0, 0.92)
+
+    local title = f:CreateFontString(nil, "OVERLAY", "GameFontHighlightLarge")
+    title:SetPoint("TOPLEFT", 16, -14)
+    title:SetText(GT_CHAT_PREFIX or "GildenSteuer")
+
+    local msg = f:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+    msg:SetPoint("TOPLEFT", 16, -44)
+    msg:SetPoint("BOTTOMRIGHT", -16, 46)
+    msg:SetJustifyH("LEFT")
+    msg:SetJustifyV("TOP")
+    msg:SetText(text)
+
+    local btn = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
+    btn:SetSize(140, 28)
+    btn:SetPoint("BOTTOMRIGHT", -16, 14)
+    btn:SetText(OKAY or "OK")
+    btn:SetScript("OnClick", function() f:Hide() end)
+
+    local hint = f:CreateFontString(nil, "OVERLAY", "GameFontDisableSmall")
+    hint:SetPoint("BOTTOMLEFT", 16, 18)
+    hint:SetText(GT_POPUP_DRAG_HINT or "(drag to move)")
+
+    -- auto-close after a bit (optional)
+    C_Timer.After(20, function()
+        if f and f:IsShown() then f:Hide() end
+    end)
+end
+
+function GildenSteuer:MaybeShowWarbandMigrationHint()
+    local text = self._pendingOneTimePopupText
+    if not text or text == "" then return end
+
+    -- Popup zeigen
+    self:ShowOneTimePopup(text)
+
+    -- danach löschen, damit es nicht erneut versucht wird (Session)
+    self._pendingOneTimePopupText = nil
+end
+
+function GildenSteuer:InitWarbandAutoDeposit()
+    -- Migration / safety for older DBs
+    if not self.db or not self.db.char then return end
+    if type(self.db.char.warbandAutoDeposit) ~= "table" then
+        self.db.char.warbandAutoDeposit = {}
+    end
+
+    local s = self.db.char.warbandAutoDeposit
+
+    -- ✅ Standard jetzt AUS (User muss aktiv einschalten)
+    if s.enabled == nil then s.enabled = false end
+
+    -- ✅ Default: Gold, das behalten werden soll (in Copper)
+    if type(s.goldToKeep) ~= "number" then
+        s.goldToKeep = 10000000 -- 1000g
+    end
+
+    -- ❌ ALLES was Mindest-Einzahlung betrifft entfernen (alte Daten bereinigen)
+    if s.minDeposit ~= nil then
+        s.minDeposit = nil
+    end
+
+    -- ✅ Einmaliger Hinweis (pro Charakter)
+    if s._migrationHintShown ~= true then
+        s._migrationHintShown = true
+
+        -- wir zeigen es NICHT sofort im Chat, sondern als Popup nach dem Login
+        self._pendingOneTimePopupText =
+            (GT_CHAT_WAD_MIGRATION_HINT)
+            or "New: Warband deposit is available, but disabled by default. Enable it in the addon options."
+    end
+end
+
+function GildenSteuer:GetWarbandAutoDepositSettings()
+    if not self.db then return nil end
+    if not self.db.char.warbandAutoDeposit then
+        self:InitWarbandAutoDeposit()
+    end
+    return self.db.char.warbandAutoDeposit
+end
+
+function GildenSteuer:RunWarbandAutoDeposit()
+    if self._wadProcessing then return end
+
+    local s = self:GetWarbandAutoDepositSettings()
+    if not s or not s.enabled then return end
+
+    -- API safety
+    if not (_GS_C_Bank and _GS_C_Bank.DepositMoney and _GS_C_Bank.CanDepositMoney) then return end
+
+    self._wadProcessing = true
+
+    _GS_C_Timer.After(0.6, function()
+        local currentMoney = _GS_GetMoney()
+        local keep = tonumber(s.goldToKeep) or 0
+        local moneyToDeposit = currentMoney - keep
+
+        if moneyToDeposit > 0 then
+            if _GS_C_Bank.CanDepositMoney(Enum.BankType.Account, moneyToDeposit) then
+                _GS_C_Bank.DepositMoney(Enum.BankType.Account, moneyToDeposit)
+
+                local msg = (GT_CHAT_WAD_DEPOSITED and string.format(GT_CHAT_WAD_DEPOSITED, _GS_GetCoinTextureString(moneyToDeposit)))
+                    or ("Deposited " .. _GS_GetCoinTextureString(moneyToDeposit) .. " to Warband Bank.")
+                self:Print(msg)
+            end
+        end
+
+        _GS_C_Timer.After(1.5, function() self._wadProcessing = false end)
+    end)
 end
 
 function GildenSteuer:HistoryKey(year, month)
@@ -696,15 +857,24 @@ function GildenSteuer:ChatFrame_OnHyperlinkShow(chat, link, text, button)
 end
 
 function GildenSteuer:PLAYER_ENTERING_WORLD( ... )
-	self.GUI:Create()
+    self.GUI:Create()
 
-	self:UpdatePlayerName()
-	self:UpdatePlayerMoney()
-	self:UpdateGuildInfo()
+    self:UpdatePlayerName()
+    self:UpdatePlayerMoney()
+    self:UpdateGuildInfo()
 
-	C_GuildInfo.GuildRoster()
+    -- ✅ HIER: Popup-Hinweis einmalig anzeigen (wenn Migration pending ist)
+    if self.MaybeShowWarbandMigrationHint then
+        C_Timer.After(1.0, function()
+            if GildenSteuer and GildenSteuer.MaybeShowWarbandMigrationHint then
+                GildenSteuer:MaybeShowWarbandMigrationHint()
+            end
+        end)
+    end
 
-	C_Timer.After(QUEUE_ITERATION, self.QueueIteration)
+    C_GuildInfo.GuildRoster()
+
+    C_Timer.After(QUEUE_ITERATION, self.QueueIteration)
 end
 
 -- Erweiterte Grace Zeit für Kriegsmeuten-Bank
@@ -960,9 +1130,13 @@ local function OnGuildBankShow(self, event, frameType)
             self:PrintNotReady()
         end
     elseif frameType == 8 then
-        self:Debug("Kriegsmeutenbank geöffnet - nur überwachen, keine Meldung")
+        self:Debug("Kriegsmeutenbank geöffnet - AutoDeposit prüfen")
         self.isBankOpened = true
         self.lastBankInteraction = GetTime()
+
+        if self.isReady and self.RunWarbandAutoDeposit then
+            self:RunWarbandAutoDeposit()
+        end
     else
         self:Debug("Andere Bank/Interaktion (frameType=" .. tostring(frameType) .. ") ignoriert")
     end
@@ -1050,8 +1224,8 @@ GildenSteuer:RegisterEvent("PLAYER_GUILD_UPDATE")
 GildenSteuer:RegisterEvent("GUILD_ROSTER_UPDATE")
 GildenSteuer:RegisterEvent("MAIL_SHOW")
 GildenSteuer:RegisterEvent("MAIL_CLOSED")
-GildenSteuer:RegisterEvent("TRADE_SHOW")   -- 🆕 NEU
-GildenSteuer:RegisterEvent("TRADE_CLOSED") -- 🆕 NEU
+GildenSteuer:RegisterEvent("TRADE_SHOW")   -- NEW NEW: NEU
+GildenSteuer:RegisterEvent("TRADE_CLOSED") -- NEW NEW: NEU
 GildenSteuer:RegisterEvent("LOOT_OPENED")     -- Für Loot
 GildenSteuer:RegisterEvent("MERCHANT_SHOW")   -- Für Vendor-Verkauf
 GildenSteuer:RegisterEvent("MERCHANT_CLOSED")
