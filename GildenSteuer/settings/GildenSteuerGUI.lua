@@ -3,6 +3,17 @@ local Addon = AceAddon:GetAddon("GildenSteuer", true)
 if not Addon then return end
 local GildenSteuer = Addon
 
+-- AceGUI ist seit einiger Zeit NICHT mehr garantiert als globale Variable vorhanden.
+-- In neueren Clients (z.B. Prepatches) ist "AceGUI" global oft nil.
+-- Daher immer sauber über LibStub holen.
+local AceGUI = LibStub("AceGUI-3.0", true)
+if not AceGUI then
+  -- Wenn AceGUI nicht geladen werden kann, bricht die GUI sauber ab,
+  -- damit das restliche Addon (Steuerlogik/Sync) nicht komplett stirbt.
+  (GildenSteuer and GildenSteuer.Debug or function() end)(GildenSteuer, "AceGUI-3.0 fehlt/ist nicht geladen – GUI deaktiviert")
+  return
+end
+
 local TABLE_UPDATE_THRESHOLD = 5
 
 local GUI = {

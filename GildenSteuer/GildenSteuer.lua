@@ -472,9 +472,16 @@ function GildenSteuer:MigrateDatabase()
 end
 
 function GildenSteuer:UpdatePlayerName()
-	self.playerName = UnitName("player")
-	self.playerRealm = GetRealmName()
-	self.playerFullName = self.playerName .. "-" .. self.playerRealm
+	local name = UnitName("player")
+	local realm = GetRealmName()
+	-- In frühen Login-Phasen kann UnitName("player") noch nil sein.
+	-- Nicht sofort konkatenieren, sonst knallt es in Prepatches/mit verändertem Event-Timing.
+	if not name or not realm then
+		return
+	end
+	self.playerName = name
+	self.playerRealm = realm
+	self.playerFullName = name .. "-" .. realm
 end
 
 function GildenSteuer:UpdatePlayerMoney(playerMoney)
@@ -507,6 +514,10 @@ function GildenSteuer:Ready()
 		if self.guildId and self.numberMembers ~= nil and self.numberMembers ~= 0 then
 			self.isReady = true
 			self:PrintGeneralInfo()
+			-- Prepatch: playerName kann noch nil sein, falls Events früher feuern.
+			if not self.playerName then
+				self:UpdatePlayerName()
+			end
 			self:NotifyStatus(self.playerName)
 		else
 			self.isReady = false
@@ -561,6 +572,13 @@ function GildenSteuer:SendData(data)
 end
 
 function GildenSteuer:NotifyStatus(playerName)
+	if playerName == nil then
+		playerName = self.playerName
+	end
+	if playerName == nil then
+		-- Nichts zu tun, solange der Spielername noch nicht verfügbar ist.
+		return
+	end
 	local status = self:GetStatus(playerName)
 	if status.version ~= nil then
 		self:Debug("Add status message for " .. playerName .. " to queue")
@@ -692,9 +710,13 @@ end
 
 function GildenSteuer:OnGUICommand()
 	if self.isReady then
-		self.GUI:Toggle()
-		if self.GUI:IsShown() then
-			self.GUI:RefreshTable()
+		if self.GUI and self.GUI.Toggle then
+			self.GUI:Toggle()
+			if self.GUI.IsShown and self.GUI:IsShown() and self.GUI.RefreshTable then
+				self.GUI:RefreshTable()
+			end
+		else
+			self:Print("GUI ist nicht verfügbar (AceGUI fehlt oder wurde nicht geladen).")
 		end
 	else
 		self.PrintNotReady()
@@ -802,9 +824,9 @@ GildenSteuer.events = {
 			end
 			playerHistory["total"] = total
 
-			if GildenSteuer.GUI.IsShown() then
-				GildenSteuer.GUI:RefreshTable()
-			end
+				if GildenSteuer.GUI and GildenSteuer.GUI.IsShown and GildenSteuer.GUI:IsShown() and GildenSteuer.GUI.RefreshTable then
+					GildenSteuer.GUI:RefreshTable()
+				end
 
 		elseif playerStatus.timestamp == timestamp then
 			GildenSteuer:Debug("Receive status for " .. tostring(playerName) .. ", have same, ignoring")
@@ -1193,7 +1215,7 @@ function GildenSteuer:GUILD_ROSTER_UPDATE( ... )
 		needRefresh = true
 	end
 	if needRefresh then
-		if self.GUI:IsShown() then
+		if self.GUI and self.GUI.IsShown and self.GUI:IsShown() and self.GUI.RefreshTable then
 			self.GUI:RefreshTable()
 		end
 	end
