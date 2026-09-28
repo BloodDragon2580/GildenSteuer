@@ -12,7 +12,7 @@
 ## Notes-zhCN: 自动公会税、公会银行付款和战团金币存款。
 ## Notes-zhTW: 自動公會稅、公會銀行付款和戰隊金幣存款。
 ## Author: BloodDragon2580
-## Version: 16.5
+## Version: 16.6
 ## SavedVariables: GildenSteuerDB
 ## IconTexture: Interface\AddOns\GildenSteuer\Media\Texture\logo
 ## OptionalDeps: LibDataBroker-1.1, LibDBIcon-1.0
