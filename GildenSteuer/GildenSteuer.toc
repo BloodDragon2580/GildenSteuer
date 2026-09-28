@@ -1,4 +1,4 @@
-## Interface: 120100, 120007, 120005
+## Interface: 120100, 120007, 120005, 120105
 ## Title: |cffd6266cGuildGoldTax|r
 ## Notes: Automatische Gildensteuer, Gildenbank-Zahlungen und Warband-Gold-Einzahlungen.
 ## Notes-enUS: Automatic guild taxes, guild bank payments and Warband gold deposits.
